@@ -19,8 +19,14 @@ This is intentded to be a project that explores the idea of creating a command-l
   - Store Sources, 
   - Store Sequences of Operation
   - View the stored Sources, Sequences, and Data
-  - Follows consistent, safe patterns
-  - Later versions will be optimized for speed
+  - Send Data to destinations
+  - Runtime has state that is persistent
+  - You can update key/value pairs on state
+
+
+I want this tool to follow consistent, safe patterns, and it will be optimized for speed later if necessary.
+
+Additionally I want to reduce the amount of maintenence on this project to an absolute minimum. Could this potentially be a truly complete project?
 
 The way I think about building a cli is how easy it is to navigate through submenus, and selecting the correct option.
 
