@@ -7,9 +7,24 @@ import (
   "strings"
 )
 
+func Options(){
+  // need to move this to configuration file eventually so
+  // the user can change
+  // how to access the index and order of the menu values
+  // but not the value of "quit","state","pipelines","sources"
+  mainopts := [7]string{"q) quit","1) state","2) pipelines ","3) sources","4) destinations","5) data transforms","6) sequences"}
+  i := 0;
+  for i < 7 {
+    fmt.Println(mainopts[i])
+    i = i+1
+  }
+}
+
 func Menu(o1 *map[string]string){
   reader := bufio.NewReader(os.Stdin)
   state := *o1
+  Options()
+
   for {
     fmt.Print("-> ")
     text, _ := reader.ReadString('\n')
