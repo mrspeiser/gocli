@@ -38,5 +38,5 @@ func main() {
   fmt.Println("---------------------")
 
   runningstate := make(map[string]string)
-  menu.ShowMenu(&runningstate)
+  menus.ShowMenu(&runningstate)
 }

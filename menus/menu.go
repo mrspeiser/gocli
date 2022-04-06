@@ -1,44 +1,12 @@
-package menu
+package menus
 
 import (
   "bufio"
   "os"
   "fmt"
   "strings"
-  "github.com/mrspeiser/gocli/menus/combiner"
-  "github.com/mrspeiser/gocli/utilities/printing"
+  "github.com/mrspeiser/gocli/utilities"
 )
-
-/*
-Menu Options struct holds:
-  the accessor: The muatable value to access the next menu or action
-  the unique menu key: The key on the MenuMap to get the next sub menu or previous menu
-  the value: The immutable value that displays the option
-*/
-type MenuOption struct {
-  uniquemenukey string
-  accessor      string
-  value         string
-}
-
-/*
-Menu struct holds:
-  The menuname: matches the uniquemenukey for the option selected
-  the menuoptions: a list of MenuOptions
-*/
-type Menu struct {
-  menuname    string
-  menuoptions []MenuOption
-}
-
-/* 
-returns a map of all cli menu items
-   get the Menu by accessing the unique menu key
-*/
-func getmap() map[string]Menu{
-  allmenus := make(map[string]Menu)
-  return allmenus
-}
 
 func AccessMenu(menu Menu){
   reader := bufio.NewReader(os.Stdin)
@@ -55,21 +23,18 @@ func AccessMenu(menu Menu){
   }
 }
 
-
-//func Options(){
-//  // need to move this to configuration file eventually so
-//  // the user can change
-//  // how to access the index and order of the menu values
-//  // but not the value of "quit","state","pipelines","sources"
-//  mainoptions := MenuOption{}
-//  mainoptions.fill_defaults()
-//  PrintOptions(mainoptions.menuitems)
-//}
-
 func ShowMenu(o1 *map[string]string){
   reader := bufio.NewReader(os.Stdin)
   state := *o1
-  //Options()
+  mainopts := []string{
+    "q) quit",
+    "1) state",
+    "2) pipelines ",
+    "3) sources",
+    "4) destinations",
+    "5) data transforms",
+    "6) sequences"}
+  utils.PrintOptions(mainopts)
 
   for {
     fmt.Print("-> ")
