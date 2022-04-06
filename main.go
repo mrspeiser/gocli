@@ -36,6 +36,7 @@ func main() {
 
   fmt.Println("\nGO CLI")
   fmt.Println("---------------------")
+
   runningstate := make(map[string]string)
   menu.Menu(&runningstate)
 }

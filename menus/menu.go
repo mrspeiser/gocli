@@ -7,17 +7,54 @@ import (
   "strings"
 )
 
+type MenuOptions struct {
+  accessors []string
+  menuitems []string
+  options2 []string
+  actions   []string
+}
+
+func (m *MenuOptions) fill_defaults(){
+  mainopts := []string{
+    "q) quit",
+    "1) state",
+    "2) pipelines ",
+    "3) sources",
+    "4) destinations",
+    "5) data transforms",
+    "6) sequences"}
+
+  stateops := []string{
+    "b) back",
+    "1) runtime",
+    "2) saved ",
+    "3) save current",
+    "4) load saved",
+    "5) add",
+    "6) remove"}
+
+  m.accessors = mainopts
+  m.menuitems = mainopts
+  m.options2 = stateops
+  m.actions = mainopts
+}
+
+func PrintOptions(options []string){
+
+  i := 0;
+  for i < 7 {
+    fmt.Println(options[i])
+    i = i+1
+  }
+}
 func Options(){
   // need to move this to configuration file eventually so
   // the user can change
   // how to access the index and order of the menu values
   // but not the value of "quit","state","pipelines","sources"
-  mainopts := [7]string{"q) quit","1) state","2) pipelines ","3) sources","4) destinations","5) data transforms","6) sequences"}
-  i := 0;
-  for i < 7 {
-    fmt.Println(mainopts[i])
-    i = i+1
-  }
+  mainoptions := MenuOptions{}
+  mainoptions.fill_defaults()
+  PrintOptions(mainoptions.menuitems)
 }
 
 func Menu(o1 *map[string]string){
