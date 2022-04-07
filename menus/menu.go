@@ -5,7 +5,6 @@ import (
   "os"
   "fmt"
   "strings"
-  "github.com/mrspeiser/gocli/utilities"
 )
 
 func AccessMenu(menu Menu){
@@ -19,6 +18,7 @@ func AccessMenu(menu Menu){
     //menuopt := reflect.ValueOf(menu.menuoptions[i])
     if strings.Compare(menu.menuoptions[i].value, input) == 0 {
       fmt.Println(menu.menuoptions[i])
+
     }
   }
 }
@@ -26,15 +26,7 @@ func AccessMenu(menu Menu){
 func ShowMenu(o1 *map[string]string){
   reader := bufio.NewReader(os.Stdin)
   state := *o1
-  mainopts := []string{
-    "q) quit",
-    "1) state",
-    "2) pipelines ",
-    "3) sources",
-    "4) destinations",
-    "5) data transforms",
-    "6) sequences"}
-  utils.PrintOptions(mainopts)
+  collate()
 
   for {
     fmt.Print("-> ")

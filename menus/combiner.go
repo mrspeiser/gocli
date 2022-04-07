@@ -1,35 +1,27 @@
 package menus
 
 import (
-  "fmt"
+  "strings"
 )
 
-func hellocombiner(){
-  fmt.Println("Hello from Combiner")
-//  mainopts := []string{
-//    "q) quit",
-//    "1) state",
-//    "2) pipelines ",
-//    "3) sources",
-//    "4) destinations",
-//    "5) data transforms",
-//    "6) sequences"}
-//
-//  stateops := []string{
-//    "b) back",
-//    "1) runtime",
-//    "2) saved ",
-//    "3) save current",
-//    "4) load saved",
-//    "5) add",
-//    "6) remove"}
-//func Options(){
-//  // need to move this to configuration file eventually so
-//  // the user can change
-//  // how to access the index and order of the menu values
-//  // but not the value of "quit","state","pipelines","sources"
-//  mainoptions := MenuOption{}
-//  mainoptions.fill_defaults()
-//  PrintOptions(mainoptions.menuitems)
-//}
+func collate(){
+  //allmenus := [][]string
+  mainopts := []string{
+    "q quit main.quit",
+    "1 state main.state",
+    "2 pipelines main.pipeline",
+    "3 sources main.sources",
+    "4 destinations main.destinations",
+    "5 data transforms main.transforms",
+    "6 sequences main.sequences"}
+  MainMenu := Menu{}
+  MainMenuOpts := make([]MenuOption,len(mainopts))
+
+  for i := 0; i < len(mainopts); i++ {
+    stringOpt := mainopts[i]
+    splitOpt := strings.Split(stringOpt, " ")
+    MainMenuOpts[i] = MenuOption{accessor:splitOpt[0],value:splitOpt[1],uniquemenukey:splitOpt[2]}
+  }
+  MainMenu.menuoptions = MainMenuOpts
+  PrintMenuOptions(MainMenu)
 }

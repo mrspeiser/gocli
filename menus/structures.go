@@ -26,7 +26,7 @@ type Menu struct {
 returns a map of all cli menu items
    get the Menu by accessing the unique menu key
 */
-func getmap() map[string]Menu{
+func Getmap() map[string]Menu{
   allmenus := make(map[string]Menu)
   return allmenus
 }
