@@ -40,7 +40,7 @@ returns a map of all cli menu items
 func GetCliMap(keys []string) map[string]Menu{
   cli := make(map[string]Menu)
   for i:=0;i<len(keys);i++{
-    cli[keys[i]] = Menu{menuname:keys[i]}
+    cli[keys[i]] = Menu{menuname:keys[i],menuoptions:nil}
   }
   return cli
 }

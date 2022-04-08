@@ -4,7 +4,7 @@ import (
   "strings"
 )
 
-func collate(){
+func collate() map[string]Menu {
   allmenukeys := []string{
   "main",
   "main.state",
@@ -42,4 +42,5 @@ func collate(){
   MainMenu.menuoptions = MainMenuOpts
   menus["main"] = MainMenu
   PrintMenuOptions(menus["main"])
+  return menus
 }
