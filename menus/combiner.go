@@ -4,7 +4,29 @@ import (
   "strings"
 )
 
+func CollateMenuOptions(uniquekey string,
+                        menuoptions []string,
+                        cli *map[string]Menu){
+  menuops := menuoptions
+  combined := GetMenuMap(uniquekey,menuops)
+  MainStateMenu := Menu{menuname:uniquekey}
+  MainStateMenuOpts := make([]MenuOption,len(combined[uniquekey]))
+
+  for i := 0; i < len(menuops); i++ {
+    stringOpt := menuops[i]
+    splitOpt := strings.Split(stringOpt, " ")
+    MainStateMenuOpts[i] = MenuOption{
+      accessor:splitOpt[0],
+      value:splitOpt[1],
+      uniquemenukey:splitOpt[2],
+      action:splitOpt[3]}
+  }
+  MainStateMenu.menuoptions = MainStateMenuOpts
+  (*cli)[uniquekey] = MainStateMenu
+}
+
 func collate() map[string]Menu {
+
   allmenukeys := []string{
   "main",
   "main.state",
@@ -25,43 +47,18 @@ func collate() map[string]Menu {
     "5 transforms main.transforms menu",
     "6 sequences main.sequences menu"}
 
-  combined := GetMenuMap("main",mainopts)
-  MainMenu := Menu{menuname:"main"}
-  MainMenuOpts := make([]MenuOption,len(combined["main"]))
-
-  for i := 0; i < len(mainopts); i++ {
-    stringOpt := mainopts[i]
-    splitOpt := strings.Split(stringOpt, " ")
-    MainMenuOpts[i] = MenuOption{
-      accessor:splitOpt[0],
-      value:splitOpt[1],
-      uniquemenukey:splitOpt[2],
-      action:splitOpt[3]}
-  }
-  MainMenu.menuoptions = MainMenuOpts
-  cli["main"] = MainMenu
-
-
   stateops := []string{
     "q quit main.state.quit exit",
     "1 option1 main.state.option1 menu",
     "2 option2 main.state.option2 menu"}
 
-  combined2 := GetMenuMap("main.state",stateops)
-  MainStateMenu := Menu{menuname:"main.state"}
-  MainStateMenuOpts := make([]MenuOption,len(combined2["main.state"]))
+  allmenuoptions := [][]string{mainopts,stateops}
 
-  for i := 0; i < len(stateops); i++ {
-    stringOpt := stateops[i]
-    splitOpt := strings.Split(stringOpt, " ")
-    MainStateMenuOpts[i] = MenuOption{
-      accessor:splitOpt[0],
-      value:splitOpt[1],
-      uniquemenukey:splitOpt[2],
-      action:splitOpt[3]}
+  for i :=0; i<len(allmenuoptions); i++ {
+    uniquekey := allmenukeys[i]
+    menuoptions := allmenuoptions[i]
+    CollateMenuOptions(uniquekey, menuoptions, &cli)
   }
-  MainStateMenu.menuoptions = MainStateMenuOpts
-  cli["main.state"] = MainStateMenu
 
   return cli
 }
