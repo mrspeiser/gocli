@@ -2,7 +2,18 @@ package menus
 
 import (
   "strings"
+  "bufio"
+  "os"
+  "fmt"
 )
+
+func WriteToPipelines(){
+  fmt.Print("new pipeline-> ")
+  reader := bufio.NewReader(os.Stdin)
+  input, _ := reader.ReadString('\n')
+  input = strings.Replace(input, "\n", "", -1)
+  AppendFile("pipelines.cli",input)
+}
 
 func CollateMenuOptions(uniquekey string,
                         menuoptions []string,
@@ -25,7 +36,7 @@ func CollateMenuOptions(uniquekey string,
   (*cli)[uniquekey] = MainStateMenu
 }
 
-func collate() map[string]Menu {
+func collate() (map[string]Menu, map[string]func()) {
 
   allmenukeys := []string{
   "main",
@@ -48,11 +59,28 @@ func collate() map[string]Menu {
     "6 sequences main.sequences menu"}
 
   stateops := []string{
-    "q quit main.state.quit exit",
-    "1 option1 main.state.option1 menu",
-    "2 option2 main.state.option2 menu"}
+    "q back main.state.quit exit",
+    "1 show-o1 main.state.option1 menu",
+    "2 set-o1 main.state.option2 menu"}
 
-  allmenuoptions := [][]string{mainopts,stateops}
+  pipelineops := []string{
+    "q back main.pipeline.quit exit",
+    "1 new main.pipeline.newpipeline action",
+    "2 delete main.pipeline.deletepipeline action"}
+
+  sourcesops := []string{
+    "q back main.sources.quit exit",
+    "1 new main.sources.newsource action",
+    "2 read main.sources.readsource action",
+    "3 delete main.sources.deletesource action"}
+
+  /* 
+    IMPORTANT, when adding a new menu's options they need to be in the 
+    correct order with the allmenukeys variable above, otherwise
+    the menus will be mismatched
+  */
+
+  allmenuoptions := [][]string{mainopts,stateops,pipelineops,sourcesops}
 
   for i :=0; i<len(allmenuoptions); i++ {
     uniquekey := allmenukeys[i]
@@ -60,5 +88,9 @@ func collate() map[string]Menu {
     CollateMenuOptions(uniquekey, menuoptions, &cli)
   }
 
-  return cli
+  actions := make(map[string]func())
+  actions["main.pipeline.newpipeline"] = WriteToPipelines
+
+  return cli, actions
 }
+

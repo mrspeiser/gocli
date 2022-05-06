@@ -8,11 +8,14 @@ import (
 )
 
 func AccessMenu(cli map[string]Menu,
+                actions map[string]func(),
                 o1 *map[string]string,
                 currentmenu string){
+
   reader := bufio.NewReader(os.Stdin)
-  PrintMenuOptions(cli[currentmenu])
+
   for {
+    PrintMenuOptions(cli[currentmenu])
     fmt.Print("-> ")
     input, _ := reader.ReadString('\n')
     // convert CRLF to LF
@@ -29,16 +32,25 @@ func AccessMenu(cli map[string]Menu,
     // check the input to see if it has a matching option accessor
     option,validoption := CheckOption(cli,input,currentmenu)
 
+    // Print input to command line
+    fmt.Println("\noption: ",option,"\n")
+
+    if(option != nil && (*option).action == "action"){
+      functionkey := (*option).uniquemenukey
+      fn := actions[functionkey]
+      fn()
+    }
+
     // if option is valid
-    if(validoption == true){
+    if(validoption == true && (*option).action == "menu"){
       // get the next menu's key corresponding to the option
       nextaccess := (*option).uniquemenukey
-      // rereive menu from map using the options uniquemenukey 
+      // retreive menu from map using the options uniquemenukey 
       menu := cli[nextaccess]
       // if menu's options are available 
       if menu.menuoptions != nil {
         // recursively call AccessMenu
-        AccessMenu(cli,o1,nextaccess)
+        AccessMenu(cli,actions,o1,nextaccess)
         PrintMenuOptions(cli[currentmenu])
       // else tell user, the menu they selected is not setup
       } else {
@@ -70,8 +82,8 @@ func CheckOption(cli map[string]Menu, input string, currentmenu string) (*MenuOp
 
 func ShowMenu(o1 *map[string]string){
   state := *o1
-  cli := collate()
-  AccessMenu(cli,&state,"main")
+  cli, actions := collate()
+  AccessMenu(cli,actions,&state,"main")
   //reader := bufio.NewReader(os.Stdin)
   //for {
   //  fmt.Print("-> ")
