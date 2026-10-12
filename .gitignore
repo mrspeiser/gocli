@@ -1,0 +1,6 @@
+/gocli
+*.exe
+pipelines.cli
+data/
+.DS_Store
+commit-message.txt

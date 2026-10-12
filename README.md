@@ -2,21 +2,36 @@
 
 ##### CURRENTLY UNDER DEVELOPMENT
 
+- [Current status](#current-status)
 - [Idea](#idea)
 - [Contributing](#contributing)
 
   
 <br />
 
+#### Current status
+
+Today the tool:
+
+- Reads `conf.json` and prints `NAME`, `VERSION`, and `ORDER`
+- Walks menus for main, state, pipelines, sources, destinations, transforms, and sequences
+- Saves pipeline names to `pipelines.cli`
+- Saves sources to `data/sources.json` and can add, delete, and HTTP GET a source
+- Loads and saves runtime key/value state in `data/state.json`
+
+Destinations, transforms, and sequences can be opened and closed. They do not perform work yet. Other storage types in the idea list are still ahead.
+
+<br />
+
 #### Idea
 
 I see Go as being fast, great with concurrency, and has great semantics
 
-This is intentded to be a project that explores the idea of creating a command-line-interface tool in go that can do the following things:
-  - Retreive Data from various sources
+This is intended to be a project that explores the idea of creating a command-line-interface tool in go that can do the following things:
+  - Retrieve Data from various sources
   - Write Data to files
   - Manipulate Data from files
-  - Store Sources, 
+  - Store Sources
   - Store Sequences of Operation
   - View the stored Sources, Sequences, and Data
   - Send Data to destinations
@@ -26,7 +41,7 @@ This is intentded to be a project that explores the idea of creating a command-l
 
 I want this tool to follow consistent, safe patterns, and it will be optimized for speed later if necessary.
 
-Additionally I want to reduce the amount of maintenence on this project to an absolute minimum. Could this potentially be a truly complete project?
+Additionally I want to reduce the amount of maintenance on this project to an absolute minimum. Could this potentially be a truly complete project?
 
 The way I think about building a cli is how easy it is to navigate through submenus, and selecting the correct option.
 
@@ -46,7 +61,7 @@ then this would show me a list of sources that I can choose from
 choose a source
 then this would show me a list of actions I can perform with the value from that source
 
-The way I think this could be useful if you could reduce the barier to connect to multiple types of storage platforms
+The way I think this could be useful if you could reduce the barrier to connect to multiple types of storage platforms
 
 Ways you can get data:
 
@@ -56,11 +71,11 @@ Ways you can get data:
 4. Copying files scp
 5. UDP streaming
 
-Being able to quickly, easily, and consistently reteive, store, and optionally manipulate data.
+Being able to quickly, easily, and consistently retrieve, store, and optionally manipulate data.
 
 Also this leads into being able to connect different types of storage mediums by a tool that can translate between them.
 
-This will be my first Go endeavor so if you taking a look at all the code, just know it's a work in progress.
+This will be my first Go endeavor so if you are taking a look at all the code, just know it's a work in progress.
 
 I will try to update this README.md as best I can as things change and progress.
 

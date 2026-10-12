@@ -1,44 +1,23 @@
 package menus
 
 import (
-  "os"
-  "fmt"
-  "log"
+	"os"
 )
 
-func WriteFile(filename string, s string) int {
-  fn := filename
-  str := []byte(s)
-  err := os.WriteFile(fn,str,0777)
-  if err != nil {
-    fmt.Printf("Error writing file: %s",err)
-    return 1
-  }
-  return 0
+func WriteFile(filename string, s string) error {
+	return os.WriteFile(filename, []byte(s), 0644)
 }
 
-func AppendFile(filename string, s string) {
-  f, err := os.OpenFile(filename,
-	os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0777)
-  if err != nil {
-    log.Println(err)
-  }
-  s = s+"\n"
-  defer f.Close()
-  if _, err := f.WriteString(s); err != nil {
-    log.Println(err)
-  }
+func AppendFile(filename string, s string) error {
+	f, err := os.OpenFile(filename, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	_, err = f.WriteString(s + "\n")
+	return err
 }
 
-func OpenFileReadOnly(filename string) (file *os.File) {
-  fn := filename
-  /*
-    os.OpenFile(filename, safety_flag, permissions)
-  */
-  f,err := os.OpenFile(fn,os.O_RDONLY,755)
-  if err != nil {
-    fmt.Printf("Error opening file: %s",err)
-    panic(err)
-  }
-  return f
+func OpenFileReadOnly(filename string) (*os.File, error) {
+	return os.Open(filename)
 }

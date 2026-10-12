@@ -1,96 +1,120 @@
 package menus
 
 import (
-  "strings"
-  "bufio"
-  "os"
-  "fmt"
+	"fmt"
+	"strings"
 )
 
-func WriteToPipelines(){
-  fmt.Print("new pipeline-> ")
-  reader := bufio.NewReader(os.Stdin)
-  input, _ := reader.ReadString('\n')
-  input = strings.Replace(input, "\n", "", -1)
-  AppendFile("pipelines.cli",input)
+func WriteToPipelines(rt *Runtime) {
+	input, err := rt.prompt("new pipeline-> ")
+	if err != nil {
+		fmt.Println("error:", err)
+		return
+	}
+	if err := AppendFile("pipelines.cli", input); err != nil {
+		fmt.Println("error:", err)
+	}
 }
 
-func CollateMenuOptions(uniquekey string,
-                        menuoptions []string,
-                        cli *map[string]Menu){
-  menuops := menuoptions
-  combined := GetMenuMap(uniquekey,menuops)
-  MainStateMenu := Menu{menuname:uniquekey}
-  MainStateMenuOpts := make([]MenuOption,len(combined[uniquekey]))
+func CollateMenuOptions(uniquekey string, menuoptions []string, cli *map[string]Menu) {
+	combined := GetMenuMap(uniquekey, menuoptions)
+	menu := Menu{menuname: uniquekey}
+	menuopts := make([]MenuOption, len(combined[uniquekey]))
 
-  for i := 0; i < len(menuops); i++ {
-    stringOpt := menuops[i]
-    splitOpt := strings.Split(stringOpt, " ")
-    MainStateMenuOpts[i] = MenuOption{
-      accessor:splitOpt[0],
-      value:splitOpt[1],
-      uniquemenukey:splitOpt[2],
-      action:splitOpt[3]}
-  }
-  MainStateMenu.menuoptions = MainStateMenuOpts
-  (*cli)[uniquekey] = MainStateMenu
+	for i := 0; i < len(menuoptions); i++ {
+		splitOpt := strings.Split(menuoptions[i], " ")
+		menuopts[i] = MenuOption{
+			accessor:      splitOpt[0],
+			value:         splitOpt[1],
+			uniquemenukey: splitOpt[2],
+			action:        splitOpt[3],
+		}
+	}
+	menu.menuoptions = menuopts
+	(*cli)[uniquekey] = menu
 }
 
-func collate() (map[string]Menu, map[string]func()) {
+func collate() (map[string]Menu, map[string]func(*Runtime)) {
+	allmenukeys := []string{
+		"main",
+		"main.state",
+		"main.pipeline",
+		"main.sources",
+		"main.destinations",
+		"main.transforms",
+		"main.sequences",
+	}
 
-  allmenukeys := []string{
-  "main",
-  "main.state",
-  "main.pipeline",
-  "main.sources",
-  "main.destinations",
-  "main.transforms",
-  "main.sequences"}
+	cli := GetCliMap(allmenukeys)
 
-  cli := GetCliMap(allmenukeys)
+	mainopts := []string{
+		"q quit main.quit exit",
+		"1 state main.state menu",
+		"2 pipelines main.pipeline menu",
+		"3 sources main.sources menu",
+		"4 destinations main.destinations menu",
+		"5 transforms main.transforms menu",
+		"6 sequences main.sequences menu",
+	}
 
-  mainopts := []string{
-    "q quit main.quit exit",
-    "1 state main.state menu",
-    "2 pipelines main.pipeline menu",
-    "3 sources main.sources menu",
-    "4 destinations main.destinations menu",
-    "5 transforms main.transforms menu",
-    "6 sequences main.sequences menu"}
+	stateops := []string{
+		"q back main.state.quit exit",
+		"1 show main.state.show action",
+		"2 set main.state.set action",
+	}
 
-  stateops := []string{
-    "q back main.state.quit exit",
-    "1 show-o1 main.state.option1 menu",
-    "2 set-o1 main.state.option2 menu"}
+	pipelineops := []string{
+		"q back main.pipeline.quit exit",
+		"1 new main.pipeline.newpipeline action",
+		"2 delete main.pipeline.deletepipeline action",
+	}
 
-  pipelineops := []string{
-    "q back main.pipeline.quit exit",
-    "1 new main.pipeline.newpipeline action",
-    "2 delete main.pipeline.deletepipeline action"}
+	sourcesops := []string{
+		"q back main.sources.quit exit",
+		"1 new main.sources.newsource action",
+		"2 read main.sources.readsource action",
+		"3 delete main.sources.deletesource action",
+	}
 
-  sourcesops := []string{
-    "q back main.sources.quit exit",
-    "1 new main.sources.newsource action",
-    "2 read main.sources.readsource action",
-    "3 delete main.sources.deletesource action"}
+	destops := []string{
+		"q back main.destinations.quit exit",
+	}
 
-  /* 
-    IMPORTANT, when adding a new menu's options they need to be in the 
-    correct order with the allmenukeys variable above, otherwise
-    the menus will be mismatched
-  */
+	transformsops := []string{
+		"q back main.transforms.quit exit",
+	}
 
-  allmenuoptions := [][]string{mainopts,stateops,pipelineops,sourcesops}
+	sequencesops := []string{
+		"q back main.sequences.quit exit",
+	}
 
-  for i :=0; i<len(allmenuoptions); i++ {
-    uniquekey := allmenukeys[i]
-    menuoptions := allmenuoptions[i]
-    CollateMenuOptions(uniquekey, menuoptions, &cli)
-  }
+	/*
+		IMPORTANT, when adding a new menu's options they need to be in the
+		correct order with the allmenukeys variable above, otherwise
+		the menus will be mismatched
+	*/
 
-  actions := make(map[string]func())
-  actions["main.pipeline.newpipeline"] = WriteToPipelines
+	allmenuoptions := [][]string{
+		mainopts,
+		stateops,
+		pipelineops,
+		sourcesops,
+		destops,
+		transformsops,
+		sequencesops,
+	}
 
-  return cli, actions
+	for i := 0; i < len(allmenuoptions); i++ {
+		CollateMenuOptions(allmenukeys[i], allmenuoptions[i], &cli)
+	}
+
+	actions := make(map[string]func(*Runtime))
+	actions["main.pipeline.newpipeline"] = WriteToPipelines
+	actions["main.sources.newsource"] = NewSource
+	actions["main.sources.readsource"] = ReadSource
+	actions["main.sources.deletesource"] = DeleteSource
+	actions["main.state.show"] = ShowState
+	actions["main.state.set"] = SetState
+
+	return cli, actions
 }
-
