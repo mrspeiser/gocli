@@ -1,20 +1,8 @@
 package menus
 
 import (
-	"fmt"
 	"strings"
 )
-
-func WriteToPipelines(rt *Runtime) {
-	input, err := rt.prompt("new pipeline-> ")
-	if err != nil {
-		fmt.Println("error:", err)
-		return
-	}
-	if err := AppendFile("pipelines.cli", input); err != nil {
-		fmt.Println("error:", err)
-	}
-}
 
 func CollateMenuOptions(uniquekey string, menuoptions []string, cli *map[string]Menu) {
 	combined := GetMenuMap(uniquekey, menuoptions)
@@ -110,6 +98,7 @@ func collate() (map[string]Menu, map[string]func(*Runtime)) {
 
 	actions := make(map[string]func(*Runtime))
 	actions["main.pipeline.newpipeline"] = WriteToPipelines
+	actions["main.pipeline.deletepipeline"] = DeletePipeline
 	actions["main.sources.newsource"] = NewSource
 	actions["main.sources.readsource"] = ReadSource
 	actions["main.sources.deletesource"] = DeleteSource

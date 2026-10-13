@@ -15,7 +15,7 @@ Today the tool:
 
 - Reads `conf.json` and prints `NAME`, `VERSION`, and `ORDER`
 - Walks menus for main, state, pipelines, sources, destinations, transforms, and sequences
-- Saves pipeline names to `pipelines.cli`
+- Saves pipeline names to `pipelines.cli` and can add and delete them
 - Saves sources to `data/sources.json` and can add, delete, and HTTP GET a source
 - Loads and saves runtime key/value state in `data/state.json`
 
@@ -82,6 +82,5 @@ I will try to update this README.md as best I can as things change and progress.
 <br />  
 
 #### Contributing
-If you would like to contribute to this project email: matt@composersoftware.com
 
 <br />  

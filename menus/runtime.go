@@ -10,7 +10,10 @@ import (
 	"strings"
 )
 
-const defaultDataDir = "data"
+const (
+	defaultDataDir       = "data"
+	defaultPipelinesFile = "pipelines.cli"
+)
 
 // Source is a named HTTP endpoint stored in data/sources.json.
 type Source struct {
@@ -20,10 +23,11 @@ type Source struct {
 
 // Runtime is the in-memory session passed to menu actions.
 type Runtime struct {
-	State   map[string]string
-	Sources []Source
-	DataDir string
-	in      *bufio.Reader
+	State         map[string]string
+	Sources       []Source
+	DataDir       string
+	PipelinesFile string
+	in            *bufio.Reader
 }
 
 func (rt *Runtime) dataDir() string {
@@ -31,6 +35,13 @@ func (rt *Runtime) dataDir() string {
 		return defaultDataDir
 	}
 	return rt.DataDir
+}
+
+func (rt *Runtime) pipelinesFile() string {
+	if rt.PipelinesFile == "" {
+		return defaultPipelinesFile
+	}
+	return rt.PipelinesFile
 }
 
 func (rt *Runtime) readLine() (string, error) {
