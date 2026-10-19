@@ -16,7 +16,7 @@ Today the tool:
 - Reads `conf.json` and prints `NAME`, `VERSION`, and `ORDER`
 - Walks menus for main, state, pipelines, sources, destinations, transforms, and sequences
 - Saves pipeline names to `pipelines.cli` and can add and delete them
-- Saves sources to `data/sources.json` and can add, delete, and HTTP GET a source
+- Saves sources to `data/sources.json`, can add, delete, and HTTP GET a source, and writes the body to `data/<name>.txt`
 - Loads and saves runtime key/value state in `data/state.json`
 
 Destinations, transforms, and sequences can be opened and closed. They do not perform work yet. Other storage types in the idea list are still ahead.

@@ -5,8 +5,11 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"os"
+	"path/filepath"
 	"sort"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -56,6 +59,9 @@ func ReadSource(rt *Runtime) {
 	body, err := FetchSource(rt, src)
 	if body != "" || err == nil {
 		fmt.Printf("\n%s\n%s\n", rt.State["last.status"], body)
+		if path := rt.State["last.file"]; path != "" {
+			fmt.Println("wrote", path)
+		}
 	}
 	if err != nil {
 		fmt.Println("error:", err)
@@ -124,8 +130,8 @@ func SetState(rt *Runtime) {
 	}
 }
 
-// FetchSource GETs src.URL, keeps at most 4KB of the body, and stores
-// last.url, last.status, and last.body on the runtime state.
+// FetchSource GETs src.URL, keeps at most 4KB of the body, stores
+// last.url, last.status, and last.body, and writes the body to a file.
 func FetchSource(rt *Runtime, src Source) (string, error) {
 	client := &http.Client{Timeout: 10 * time.Second}
 	resp, err := client.Get(src.URL)
@@ -139,13 +145,50 @@ func FetchSource(rt *Runtime, src Source) (string, error) {
 	if rt.State == nil {
 		rt.State = map[string]string{}
 	}
+	delete(rt.State, "last.file")
 	rt.State["last.url"] = src.URL
 	rt.State["last.status"] = resp.Status
 	rt.State["last.body"] = body
+	if readErr == nil {
+		path, writeErr := SaveSourceBody(rt.dataDir(), src.Name, body)
+		if writeErr != nil {
+			readErr = writeErr
+		} else {
+			rt.State["last.file"] = path
+		}
+	}
 	if saveErr := SaveState(rt.dataDir(), rt.State); readErr == nil {
 		readErr = saveErr
 	}
 	return body, readErr
+}
+
+// SaveSourceBody writes the response body to data/<name>.txt.
+func SaveSourceBody(dir, name, body string) (string, error) {
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		return "", err
+	}
+	path := filepath.Join(dir, sourceFileName(name))
+	if err := os.WriteFile(path, []byte(body), 0644); err != nil {
+		return "", err
+	}
+	return path, nil
+}
+
+func sourceFileName(name string) string {
+	cleaned := strings.Map(func(r rune) rune {
+		switch {
+		case r >= 'a' && r <= 'z', r >= 'A' && r <= 'Z', r >= '0' && r <= '9', r == '-', r == '_':
+			return r
+		default:
+			return '_'
+		}
+	}, name)
+	cleaned = strings.Trim(cleaned, "_")
+	if cleaned == "" {
+		return "source.txt"
+	}
+	return cleaned + ".txt"
 }
 
 func pickSource(rt *Runtime) (Source, bool) {

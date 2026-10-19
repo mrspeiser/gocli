@@ -50,6 +50,13 @@ func TestSourceRoundTrip(t *testing.T) {
 	}
 }
 
+func TestSourceFileNameStaysInDataDir(t *testing.T) {
+	got := sourceFileName("../secret")
+	if strings.ContainsAny(got, `/\`) || got == ".." || got == "" {
+		t.Fatalf("name = %q", got)
+	}
+}
+
 func TestFetchSource(t *testing.T) {
 	t.Run("stores status and body", func(t *testing.T) {
 		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -76,6 +83,25 @@ func TestFetchSource(t *testing.T) {
 		}
 		if loaded["last.body"] != body {
 			t.Fatalf("saved body = %q", loaded["last.body"])
+		}
+
+		path := filepath.Join(dir, "demo.txt")
+		if rt.State["last.file"] != path {
+			t.Fatalf("last.file = %q, want %q", rt.State["last.file"], path)
+		}
+		saved, err := os.ReadFile(path)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if string(saved) != body {
+			t.Fatalf("file body = %q", saved)
+		}
+		info, err := os.Stat(path)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if info.Mode().Perm() != 0644 {
+			t.Fatalf("body file mode = %o, want 644", info.Mode().Perm())
 		}
 	})
 
