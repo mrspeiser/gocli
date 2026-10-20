@@ -54,14 +54,16 @@ func collate() (map[string]Menu, map[string]func(*Runtime)) {
 	pipelineops := []string{
 		"q back main.pipeline.quit exit",
 		"1 new main.pipeline.newpipeline action",
-		"2 delete main.pipeline.deletepipeline action",
+		"2 show main.pipeline.showpipeline action",
+		"3 delete main.pipeline.deletepipeline action",
 	}
 
 	sourcesops := []string{
 		"q back main.sources.quit exit",
 		"1 new main.sources.newsource action",
-		"2 read main.sources.readsource action",
-		"3 delete main.sources.deletesource action",
+		"2 show main.sources.showsource action",
+		"3 read main.sources.readsource action",
+		"4 delete main.sources.deletesource action",
 	}
 
 	destops := []string{
@@ -98,8 +100,10 @@ func collate() (map[string]Menu, map[string]func(*Runtime)) {
 
 	actions := make(map[string]func(*Runtime))
 	actions["main.pipeline.newpipeline"] = WriteToPipelines
+	actions["main.pipeline.showpipeline"] = ShowPipelines
 	actions["main.pipeline.deletepipeline"] = DeletePipeline
 	actions["main.sources.newsource"] = NewSource
+	actions["main.sources.showsource"] = ShowSources
 	actions["main.sources.readsource"] = ReadSource
 	actions["main.sources.deletesource"] = DeleteSource
 	actions["main.state.show"] = ShowState

@@ -7,7 +7,6 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
-	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -87,22 +86,6 @@ func DeleteSource(rt *Runtime) {
 	rt.Sources = append(rt.Sources[:n-1], rt.Sources[n:]...)
 	if err := SaveSources(rt.dataDir(), rt.Sources); err != nil {
 		fmt.Println("error:", err)
-	}
-}
-
-func ShowState(rt *Runtime) {
-	fmt.Println()
-	if len(rt.State) == 0 {
-		fmt.Println("state is empty")
-		return
-	}
-	keys := make([]string, 0, len(rt.State))
-	for k := range rt.State {
-		keys = append(keys, k)
-	}
-	sort.Strings(keys)
-	for _, k := range keys {
-		fmt.Printf("%s: %s\n", k, rt.State[k])
 	}
 }
 
