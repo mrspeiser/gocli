@@ -94,6 +94,12 @@ func ShowMenu(o1 *map[string]string) {
 	} else {
 		rt.Sources = sources
 	}
+	destinations, err := LoadDestinations(rt.DataDir)
+	if err != nil {
+		fmt.Println("error:", err)
+	} else {
+		rt.Destinations = destinations
+	}
 	cli, actions := collate()
 	AccessMenu(cli, actions, rt, "main")
 }

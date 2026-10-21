@@ -21,10 +21,17 @@ type Source struct {
 	URL  string `json:"url"`
 }
 
+// Destination is a named HTTP endpoint stored in data/destinations.json.
+type Destination struct {
+	Name string `json:"name"`
+	URL  string `json:"url"`
+}
+
 // Runtime is the in-memory session passed to menu actions.
 type Runtime struct {
 	State         map[string]string
 	Sources       []Source
+	Destinations  []Destination
 	DataDir       string
 	PipelinesFile string
 	in            *bufio.Reader
@@ -115,4 +122,34 @@ func SaveSources(dir string, sources []Source) error {
 	}
 	data = append(data, '\n')
 	return os.WriteFile(filepath.Join(dir, "sources.json"), data, 0644)
+}
+
+func LoadDestinations(dir string) ([]Destination, error) {
+	data, err := os.ReadFile(filepath.Join(dir, "destinations.json"))
+	if errors.Is(err, os.ErrNotExist) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	var destinations []Destination
+	if err := json.Unmarshal(data, &destinations); err != nil {
+		return nil, err
+	}
+	return destinations, nil
+}
+
+func SaveDestinations(dir string, destinations []Destination) error {
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		return err
+	}
+	if destinations == nil {
+		destinations = []Destination{}
+	}
+	data, err := json.MarshalIndent(destinations, "", "  ")
+	if err != nil {
+		return err
+	}
+	data = append(data, '\n')
+	return os.WriteFile(filepath.Join(dir, "destinations.json"), data, 0644)
 }

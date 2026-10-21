@@ -68,6 +68,10 @@ func collate() (map[string]Menu, map[string]func(*Runtime)) {
 
 	destops := []string{
 		"q back main.destinations.quit exit",
+		"1 new main.destinations.newdestination action",
+		"2 show main.destinations.showdestination action",
+		"3 send main.destinations.senddestination action",
+		"4 delete main.destinations.deletedestination action",
 	}
 
 	transformsops := []string{
@@ -106,6 +110,10 @@ func collate() (map[string]Menu, map[string]func(*Runtime)) {
 	actions["main.sources.showsource"] = ShowSources
 	actions["main.sources.readsource"] = ReadSource
 	actions["main.sources.deletesource"] = DeleteSource
+	actions["main.destinations.newdestination"] = NewDestination
+	actions["main.destinations.showdestination"] = ShowDestinations
+	actions["main.destinations.senddestination"] = SendDestination
+	actions["main.destinations.deletedestination"] = DeleteDestination
 	actions["main.state.show"] = ShowState
 	actions["main.state.set"] = SetState
 
