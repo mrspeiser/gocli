@@ -8,6 +8,7 @@ func TestFormatSaved(t *testing.T) {
 		[]Source{{Name: "docs", URL: "https://example.com"}},
 		[]string{"alpha"},
 		[]Destination{{Name: "hook", URL: "https://example.com/hook"}},
+		[]Transform{{Name: "shout", Op: "upper"}},
 	)
 	want := "" +
 		"\nstate:\n" +
@@ -18,14 +19,16 @@ func TestFormatSaved(t *testing.T) {
 		"\npipelines:\n" +
 		"1) alpha\n" +
 		"\ndestinations:\n" +
-		"1) hook https://example.com/hook\n"
+		"1) hook https://example.com/hook\n" +
+		"\ntransforms:\n" +
+		"1) shout upper\n"
 	if got != want {
 		t.Fatalf("saved view =\n%s\nwant\n%s", got, want)
 	}
 }
 
 func TestFormatSavedEmpty(t *testing.T) {
-	got := formatSaved(nil, nil, nil, nil)
+	got := formatSaved(nil, nil, nil, nil, nil)
 	want := "" +
 		"\nstate:\n" +
 		"state is empty\n" +
@@ -34,7 +37,9 @@ func TestFormatSavedEmpty(t *testing.T) {
 		"\npipelines:\n" +
 		"no pipelines\n" +
 		"\ndestinations:\n" +
-		"no destinations\n"
+		"no destinations\n" +
+		"\ntransforms:\n" +
+		"no transforms\n"
 	if got != want {
 		t.Fatalf("empty view =\n%s\nwant\n%s", got, want)
 	}

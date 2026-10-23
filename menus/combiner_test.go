@@ -18,7 +18,7 @@ func TestCollateMenuOptionsParsesFields(t *testing.T) {
 
 func TestPlaceholderMenusHaveBack(t *testing.T) {
 	cli, _ := collate()
-	for _, key := range []string{"main.transforms", "main.sequences"} {
+	for _, key := range []string{"main.sequences"} {
 		opts := cli[key].menuoptions
 		if len(opts) != 1 || opts[0].accessor != "q" || opts[0].action != "exit" {
 			t.Fatalf("%s options = %+v, want a single back option", key, opts)

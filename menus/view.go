@@ -7,11 +7,11 @@ import (
 )
 
 func ShowState(rt *Runtime) {
-	sources, pipelines, destinations, ok := loadSaved(rt)
+	sources, pipelines, destinations, transforms, ok := loadSaved(rt)
 	if !ok {
 		return
 	}
-	fmt.Print(formatSaved(rt.State, sources, pipelines, destinations))
+	fmt.Print(formatSaved(rt.State, sources, pipelines, destinations, transforms))
 }
 
 func ShowSources(rt *Runtime) {
@@ -33,28 +33,34 @@ func ShowPipelines(rt *Runtime) {
 	fmt.Print(formatPipelines(pipelines))
 }
 
-func loadSaved(rt *Runtime) ([]Source, []string, []Destination, bool) {
+func loadSaved(rt *Runtime) ([]Source, []string, []Destination, []Transform, bool) {
 	sources, err := LoadSources(rt.dataDir())
 	if err != nil {
 		fmt.Println("error:", err)
-		return nil, nil, nil, false
+		return nil, nil, nil, nil, false
 	}
 	rt.Sources = sources
 	pipelines, err := LoadPipelines(rt.pipelinesFile())
 	if err != nil {
 		fmt.Println("error:", err)
-		return nil, nil, nil, false
+		return nil, nil, nil, nil, false
 	}
 	destinations, err := LoadDestinations(rt.dataDir())
 	if err != nil {
 		fmt.Println("error:", err)
-		return nil, nil, nil, false
+		return nil, nil, nil, nil, false
 	}
 	rt.Destinations = destinations
-	return sources, pipelines, destinations, true
+	transforms, err := LoadTransforms(rt.dataDir())
+	if err != nil {
+		fmt.Println("error:", err)
+		return nil, nil, nil, nil, false
+	}
+	rt.Transforms = transforms
+	return sources, pipelines, destinations, transforms, true
 }
 
-func formatSaved(state map[string]string, sources []Source, pipelines []string, destinations []Destination) string {
+func formatSaved(state map[string]string, sources []Source, pipelines []string, destinations []Destination, transforms []Transform) string {
 	var b strings.Builder
 	b.WriteString("\nstate:\n")
 	b.WriteString(formatState(state))
@@ -64,6 +70,8 @@ func formatSaved(state map[string]string, sources []Source, pipelines []string, 
 	b.WriteString(formatPipelines(pipelines))
 	b.WriteString("\ndestinations:\n")
 	b.WriteString(formatDestinations(destinations))
+	b.WriteString("\ntransforms:\n")
+	b.WriteString(formatTransforms(transforms))
 	return b.String()
 }
 
@@ -103,6 +111,24 @@ func formatDestinations(destinations []Destination) string {
 		fmt.Fprintf(&b, "%d) %s %s\n", i+1, dest.Name, dest.URL)
 	}
 	return b.String()
+}
+
+func formatTransforms(transforms []Transform) string {
+	if len(transforms) == 0 {
+		return "no transforms\n"
+	}
+	var b strings.Builder
+	for i, transform := range transforms {
+		fmt.Fprintf(&b, "%d) %s %s\n", i+1, transform.Name, formatTransformOp(transform))
+	}
+	return b.String()
+}
+
+func formatTransformOp(transform Transform) string {
+	if transform.Op == "replace" && len(transform.Args) == 2 {
+		return transform.Op + " " + transform.Args[0] + " " + transform.Args[1]
+	}
+	return transform.Op
 }
 
 func formatPipelines(pipelines []string) string {

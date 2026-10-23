@@ -76,6 +76,10 @@ func collate() (map[string]Menu, map[string]func(*Runtime)) {
 
 	transformsops := []string{
 		"q back main.transforms.quit exit",
+		"1 new main.transforms.newtransform action",
+		"2 show main.transforms.showtransform action",
+		"3 run main.transforms.runtransform action",
+		"4 delete main.transforms.deletetransform action",
 	}
 
 	sequencesops := []string{
@@ -114,6 +118,10 @@ func collate() (map[string]Menu, map[string]func(*Runtime)) {
 	actions["main.destinations.showdestination"] = ShowDestinations
 	actions["main.destinations.senddestination"] = SendDestination
 	actions["main.destinations.deletedestination"] = DeleteDestination
+	actions["main.transforms.newtransform"] = NewTransform
+	actions["main.transforms.showtransform"] = ShowTransforms
+	actions["main.transforms.runtransform"] = RunTransform
+	actions["main.transforms.deletetransform"] = DeleteTransform
 	actions["main.state.show"] = ShowState
 	actions["main.state.set"] = SetState
 

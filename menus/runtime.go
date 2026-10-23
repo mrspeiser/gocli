@@ -27,11 +27,19 @@ type Destination struct {
 	URL  string `json:"url"`
 }
 
+// Transform is a named text operation stored in data/transforms.json.
+type Transform struct {
+	Name string   `json:"name"`
+	Op   string   `json:"op"`
+	Args []string `json:"args,omitempty"`
+}
+
 // Runtime is the in-memory session passed to menu actions.
 type Runtime struct {
 	State         map[string]string
 	Sources       []Source
 	Destinations  []Destination
+	Transforms    []Transform
 	DataDir       string
 	PipelinesFile string
 	in            *bufio.Reader
@@ -152,4 +160,34 @@ func SaveDestinations(dir string, destinations []Destination) error {
 	}
 	data = append(data, '\n')
 	return os.WriteFile(filepath.Join(dir, "destinations.json"), data, 0644)
+}
+
+func LoadTransforms(dir string) ([]Transform, error) {
+	data, err := os.ReadFile(filepath.Join(dir, "transforms.json"))
+	if errors.Is(err, os.ErrNotExist) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	var transforms []Transform
+	if err := json.Unmarshal(data, &transforms); err != nil {
+		return nil, err
+	}
+	return transforms, nil
+}
+
+func SaveTransforms(dir string, transforms []Transform) error {
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		return err
+	}
+	if transforms == nil {
+		transforms = []Transform{}
+	}
+	data, err := json.MarshalIndent(transforms, "", "  ")
+	if err != nil {
+		return err
+	}
+	data = append(data, '\n')
+	return os.WriteFile(filepath.Join(dir, "transforms.json"), data, 0644)
 }

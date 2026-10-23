@@ -17,10 +17,11 @@ Today the tool:
 - Walks menus for main, state, pipelines, sources, destinations, transforms, and sequences
 - Saves pipeline names to `pipelines.cli` and can add, show, and delete them
 - Saves sources to `data/sources.json`, can add, show, delete, and HTTP GET a source, and writes the body to `data/<name>.txt`
-- Loads and saves runtime key/value state in `data/state.json`. State show lists that state with the saved sources, pipelines, and destinations
+- Loads and saves runtime key/value state in `data/state.json`. State show lists that state with the saved sources, pipelines, destinations, and transforms
 - Saves destinations to `data/destinations.json` and can add, show, delete, and POST the last source body to one
+- Saves transforms to `data/transforms.json` and can add, show, delete, and run one on `last.body`
 
-Transforms and sequences can be opened and closed. They do not perform work yet. Other storage types in the idea list are still ahead.
+Sequences can be opened and closed. They do not perform work yet. Other storage types in the idea list are still ahead.
 
 <br />
 

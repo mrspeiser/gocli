@@ -100,6 +100,12 @@ func ShowMenu(o1 *map[string]string) {
 	} else {
 		rt.Destinations = destinations
 	}
+	transforms, err := LoadTransforms(rt.DataDir)
+	if err != nil {
+		fmt.Println("error:", err)
+	} else {
+		rt.Transforms = transforms
+	}
 	cli, actions := collate()
 	AccessMenu(cli, actions, rt, "main")
 }
