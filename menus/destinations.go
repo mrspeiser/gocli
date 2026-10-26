@@ -19,16 +19,30 @@ func NewDestination(rt *Runtime) {
 		fmt.Println("name is required")
 		return
 	}
-	rawURL, err := rt.prompt("url-> ")
+	protocol, ok := askProtocol(rt)
+	if !ok {
+		return
+	}
+	rawURL, ok := askHTTPURL(rt)
+	if !ok {
+		return
+	}
+	contentType, err := rt.prompt("content-type-> ")
 	if err != nil {
 		fmt.Println("error:", err)
 		return
 	}
-	if !validSourceURL(rawURL) {
-		fmt.Println("url must be http or https")
-		return
+	contentType = strings.TrimSpace(contentType)
+	if contentType == "" {
+		contentType = "text/plain"
 	}
-	rt.Destinations = append(rt.Destinations, Destination{Name: name, URL: rawURL})
+	rt.Destinations = append(rt.Destinations, Destination{
+		Name:        name,
+		Protocol:    protocol,
+		URL:         rawURL,
+		Method:      "POST",
+		ContentType: contentType,
+	})
 	if err := SaveDestinations(rt.dataDir(), rt.Destinations); err != nil {
 		fmt.Println("error:", err)
 	}
@@ -46,18 +60,18 @@ func ShowDestinations(rt *Runtime) {
 
 func DeleteDestination(rt *Runtime) {
 	if len(rt.Destinations) == 0 {
-		fmt.Println("no destinations")
+		fmt.Println("no loads")
 		return
 	}
 	fmt.Print(formatDestinations(rt.Destinations))
-	input, err := rt.prompt("destination-> ")
+	input, err := rt.prompt("load-> ")
 	if err != nil {
 		fmt.Println("error:", err)
 		return
 	}
 	n, err := strconv.Atoi(input)
 	if err != nil || n < 1 || n > len(rt.Destinations) {
-		fmt.Println("invalid destination")
+		fmt.Println("invalid load")
 		return
 	}
 	rt.Destinations = append(rt.Destinations[:n-1], rt.Destinations[n:]...)
@@ -79,7 +93,11 @@ func SendDestination(rt *Runtime) {
 	if !ok {
 		return
 	}
-	status, respBody, err := PostBody(dest.URL, body)
+	if err := dest.validateLoad(); err != nil {
+		fmt.Println("error:", err)
+		return
+	}
+	status, respBody, err := PostBody(dest.URL, body, dest.contentType())
 	if rt.State == nil {
 		rt.State = map[string]string{}
 	}
@@ -100,13 +118,13 @@ func SendDestination(rt *Runtime) {
 }
 
 // PostBody POSTs body to rawURL and keeps at most 4KB of the response.
-func PostBody(rawURL, body string) (string, string, error) {
+func PostBody(rawURL, body, contentType string) (string, string, error) {
 	client := &http.Client{Timeout: 10 * time.Second}
 	req, err := http.NewRequest(http.MethodPost, rawURL, strings.NewReader(body))
 	if err != nil {
 		return "", "", err
 	}
-	req.Header.Set("Content-Type", "text/plain; charset=utf-8")
+	req.Header.Set("Content-Type", headerContentType(contentType))
 	resp, err := client.Do(req)
 	if err != nil {
 		return "", "", err
@@ -118,18 +136,18 @@ func PostBody(rawURL, body string) (string, string, error) {
 
 func pickDestination(rt *Runtime) (Destination, bool) {
 	if len(rt.Destinations) == 0 {
-		fmt.Println("no destinations")
+		fmt.Println("no loads")
 		return Destination{}, false
 	}
 	fmt.Print(formatDestinations(rt.Destinations))
-	input, err := rt.prompt("destination-> ")
+	input, err := rt.prompt("load-> ")
 	if err != nil {
 		fmt.Println("error:", err)
 		return Destination{}, false
 	}
 	n, err := strconv.Atoi(input)
 	if err != nil || n < 1 || n > len(rt.Destinations) {
-		fmt.Println("invalid destination")
+		fmt.Println("invalid load")
 		return Destination{}, false
 	}
 	return rt.Destinations[n-1], true

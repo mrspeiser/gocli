@@ -6,6 +6,8 @@
 - [Idea](#idea)
 - [Contributing](#contributing)
 
+Protocol configuration for HTTP and the other data sources is in [docs/protocols.md](docs/protocols.md).
+
   
 <br />
 
@@ -14,14 +16,14 @@
 Today the tool:
 
 - Reads `conf.json` and prints `NAME`, `VERSION`, and `ORDER`
-- Walks menus for main, state, pipelines, sources, destinations, transforms, and sequences
-- Saves pipeline names to `pipelines.cli` and can add, show, and delete them
-- Saves sources to `data/sources.json`, can add, show, delete, and HTTP GET a source, and writes the body to `data/<name>.txt`
-- Loads and saves runtime key/value state in `data/state.json`. State show lists that state with the saved sources, pipelines, destinations, and transforms
-- Saves destinations to `data/destinations.json` and can add, show, delete, and POST the last source body to one
-- Saves transforms to `data/transforms.json` and can add, show, delete, and run one on `last.body`
+- Walks menus for main, state, pipelines, extract, load, transform, and sequences
+- Saves a pipeline in `data/pipelines.json` as one extract, one transform, and one load, and can show, delete, and run it. Run reads the extract, transforms the body, and POSTs it to the load
+- Extract saves an HTTP GET configuration in `data/sources.json`, can show and delete it, reads the URL, and writes the body to `data/<name>.txt`
+- Loads and saves runtime key/value state in `data/state.json`. State show lists that state with saved extracts, pipelines, loads, and transforms
+- Load saves an HTTP POST configuration in `data/destinations.json`, including content type, and can show, delete, and POST the last body
+- Transform saves operations in `data/transforms.json` and can add, show, delete, and run one on `last.body`
 
-Sequences can be opened and closed. They do not perform work yet. Other storage types in the idea list are still ahead.
+Sequences can be opened and closed. They do not perform work yet. Configuration notes for MongoDB, Postgres, MySQL, and the other sources are in [docs/protocols.md](docs/protocols.md). Only `http` connects today.
 
 <br />
 

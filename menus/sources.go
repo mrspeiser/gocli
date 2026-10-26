@@ -35,16 +35,20 @@ func NewSource(rt *Runtime) {
 		fmt.Println("name is required")
 		return
 	}
-	rawURL, err := rt.prompt("url-> ")
-	if err != nil {
-		fmt.Println("error:", err)
+	protocol, ok := askProtocol(rt)
+	if !ok {
 		return
 	}
-	if !validSourceURL(rawURL) {
-		fmt.Println("url must be http or https")
+	rawURL, ok := askHTTPURL(rt)
+	if !ok {
 		return
 	}
-	rt.Sources = append(rt.Sources, Source{Name: name, URL: rawURL})
+	rt.Sources = append(rt.Sources, Source{
+		Name:     name,
+		Protocol: protocol,
+		URL:      rawURL,
+		Method:   "GET",
+	})
 	if err := SaveSources(rt.dataDir(), rt.Sources); err != nil {
 		fmt.Println("error:", err)
 	}
@@ -69,18 +73,18 @@ func ReadSource(rt *Runtime) {
 
 func DeleteSource(rt *Runtime) {
 	if len(rt.Sources) == 0 {
-		fmt.Println("no sources")
+		fmt.Println("no extracts")
 		return
 	}
-	printSources(rt.Sources)
-	input, err := rt.prompt("source-> ")
+	fmt.Print(formatSources(rt.Sources))
+	input, err := rt.prompt("extract-> ")
 	if err != nil {
 		fmt.Println("error:", err)
 		return
 	}
 	n, err := strconv.Atoi(input)
 	if err != nil || n < 1 || n > len(rt.Sources) {
-		fmt.Println("invalid source")
+		fmt.Println("invalid extract")
 		return
 	}
 	rt.Sources = append(rt.Sources[:n-1], rt.Sources[n:]...)
@@ -116,6 +120,9 @@ func SetState(rt *Runtime) {
 // FetchSource GETs src.URL, keeps at most 4KB of the body, stores
 // last.url, last.status, and last.body, and writes the body to a file.
 func FetchSource(rt *Runtime, src Source) (string, error) {
+	if err := src.validateExtract(); err != nil {
+		return "", err
+	}
 	client := &http.Client{Timeout: 10 * time.Second}
 	resp, err := client.Get(src.URL)
 	if err != nil {
@@ -176,25 +183,19 @@ func sourceFileName(name string) string {
 
 func pickSource(rt *Runtime) (Source, bool) {
 	if len(rt.Sources) == 0 {
-		fmt.Println("no sources")
+		fmt.Println("no extracts")
 		return Source{}, false
 	}
-	printSources(rt.Sources)
-	input, err := rt.prompt("source-> ")
+	fmt.Print(formatSources(rt.Sources))
+	input, err := rt.prompt("extract-> ")
 	if err != nil {
 		fmt.Println("error:", err)
 		return Source{}, false
 	}
 	n, err := strconv.Atoi(input)
 	if err != nil || n < 1 || n > len(rt.Sources) {
-		fmt.Println("invalid source")
+		fmt.Println("invalid extract")
 		return Source{}, false
 	}
 	return rt.Sources[n-1], true
-}
-
-func printSources(sources []Source) {
-	for i, src := range sources {
-		fmt.Printf("%d) %s %s\n", i+1, src.Name, src.URL)
-	}
 }

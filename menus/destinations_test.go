@@ -54,7 +54,7 @@ func TestPostBody(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	status, body, err := PostBody(srv.URL, "payload")
+	status, body, err := PostBody(srv.URL, "payload", "text/plain")
 	if err != nil {
 		t.Fatal(err)
 	}

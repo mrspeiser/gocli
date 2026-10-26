@@ -39,9 +39,9 @@ func collate() (map[string]Menu, map[string]func(*Runtime)) {
 		"q quit main.quit exit",
 		"1 state main.state menu",
 		"2 pipelines main.pipeline menu",
-		"3 sources main.sources menu",
-		"4 destinations main.destinations menu",
-		"5 transforms main.transforms menu",
+		"3 extract main.sources menu",
+		"4 load main.destinations menu",
+		"5 transform main.transforms menu",
 		"6 sequences main.sequences menu",
 	}
 
@@ -55,7 +55,8 @@ func collate() (map[string]Menu, map[string]func(*Runtime)) {
 		"q back main.pipeline.quit exit",
 		"1 new main.pipeline.newpipeline action",
 		"2 show main.pipeline.showpipeline action",
-		"3 delete main.pipeline.deletepipeline action",
+		"3 run main.pipeline.runpipeline action",
+		"4 delete main.pipeline.deletepipeline action",
 	}
 
 	sourcesops := []string{
@@ -107,8 +108,9 @@ func collate() (map[string]Menu, map[string]func(*Runtime)) {
 	}
 
 	actions := make(map[string]func(*Runtime))
-	actions["main.pipeline.newpipeline"] = WriteToPipelines
+	actions["main.pipeline.newpipeline"] = NewPipeline
 	actions["main.pipeline.showpipeline"] = ShowPipelines
+	actions["main.pipeline.runpipeline"] = RunPipeline
 	actions["main.pipeline.deletepipeline"] = DeletePipeline
 	actions["main.sources.newsource"] = NewSource
 	actions["main.sources.showsource"] = ShowSources

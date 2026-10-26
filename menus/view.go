@@ -25,7 +25,7 @@ func ShowSources(rt *Runtime) {
 }
 
 func ShowPipelines(rt *Runtime) {
-	pipelines, err := LoadPipelines(rt.pipelinesFile())
+	pipelines, err := LoadPipelineConfigs(rt.dataDir())
 	if err != nil {
 		fmt.Println("error:", err)
 		return
@@ -33,14 +33,14 @@ func ShowPipelines(rt *Runtime) {
 	fmt.Print(formatPipelines(pipelines))
 }
 
-func loadSaved(rt *Runtime) ([]Source, []string, []Destination, []Transform, bool) {
+func loadSaved(rt *Runtime) ([]Source, []Pipeline, []Destination, []Transform, bool) {
 	sources, err := LoadSources(rt.dataDir())
 	if err != nil {
 		fmt.Println("error:", err)
 		return nil, nil, nil, nil, false
 	}
 	rt.Sources = sources
-	pipelines, err := LoadPipelines(rt.pipelinesFile())
+	pipelines, err := LoadPipelineConfigs(rt.dataDir())
 	if err != nil {
 		fmt.Println("error:", err)
 		return nil, nil, nil, nil, false
@@ -60,17 +60,17 @@ func loadSaved(rt *Runtime) ([]Source, []string, []Destination, []Transform, boo
 	return sources, pipelines, destinations, transforms, true
 }
 
-func formatSaved(state map[string]string, sources []Source, pipelines []string, destinations []Destination, transforms []Transform) string {
+func formatSaved(state map[string]string, sources []Source, pipelines []Pipeline, destinations []Destination, transforms []Transform) string {
 	var b strings.Builder
 	b.WriteString("\nstate:\n")
 	b.WriteString(formatState(state))
-	b.WriteString("\nsources:\n")
+	b.WriteString("\nextract:\n")
 	b.WriteString(formatSources(sources))
 	b.WriteString("\npipelines:\n")
 	b.WriteString(formatPipelines(pipelines))
-	b.WriteString("\ndestinations:\n")
+	b.WriteString("\nload:\n")
 	b.WriteString(formatDestinations(destinations))
-	b.WriteString("\ntransforms:\n")
+	b.WriteString("\ntransform:\n")
 	b.WriteString(formatTransforms(transforms))
 	return b.String()
 }
@@ -93,22 +93,22 @@ func formatState(state map[string]string) string {
 
 func formatSources(sources []Source) string {
 	if len(sources) == 0 {
-		return "no sources\n"
+		return "no extracts\n"
 	}
 	var b strings.Builder
 	for i, src := range sources {
-		fmt.Fprintf(&b, "%d) %s %s\n", i+1, src.Name, src.URL)
+		fmt.Fprintf(&b, "%d) %s %s %s %s\n", i+1, src.Name, src.protocolName(), src.httpMethod(), src.URL)
 	}
 	return b.String()
 }
 
 func formatDestinations(destinations []Destination) string {
 	if len(destinations) == 0 {
-		return "no destinations\n"
+		return "no loads\n"
 	}
 	var b strings.Builder
 	for i, dest := range destinations {
-		fmt.Fprintf(&b, "%d) %s %s\n", i+1, dest.Name, dest.URL)
+		fmt.Fprintf(&b, "%d) %s %s %s %s %s\n", i+1, dest.Name, dest.protocolName(), dest.httpMethod(), dest.URL, dest.contentType())
 	}
 	return b.String()
 }
@@ -131,13 +131,13 @@ func formatTransformOp(transform Transform) string {
 	return transform.Op
 }
 
-func formatPipelines(pipelines []string) string {
+func formatPipelines(pipelines []Pipeline) string {
 	if len(pipelines) == 0 {
 		return "no pipelines\n"
 	}
 	var b strings.Builder
-	for i, name := range pipelines {
-		fmt.Fprintf(&b, "%d) %s\n", i+1, name)
+	for i, pipeline := range pipelines {
+		fmt.Fprintf(&b, "%d) %s %s %s %s\n", i+1, pipeline.Name, pipeline.Extract, pipeline.Transform, pipeline.Load)
 	}
 	return b.String()
 }

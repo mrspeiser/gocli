@@ -15,16 +15,29 @@ const (
 	defaultPipelinesFile = "pipelines.cli"
 )
 
-// Source is a named HTTP endpoint stored in data/sources.json.
+// Source is an extract configuration stored in data/sources.json.
 type Source struct {
-	Name string `json:"name"`
-	URL  string `json:"url"`
+	Name     string `json:"name"`
+	Protocol string `json:"protocol,omitempty"`
+	URL      string `json:"url,omitempty"`
+	Method   string `json:"method,omitempty"`
 }
 
-// Destination is a named HTTP endpoint stored in data/destinations.json.
+// Destination is a load configuration stored in data/destinations.json.
 type Destination struct {
-	Name string `json:"name"`
-	URL  string `json:"url"`
+	Name        string `json:"name"`
+	Protocol    string `json:"protocol,omitempty"`
+	URL         string `json:"url,omitempty"`
+	Method      string `json:"method,omitempty"`
+	ContentType string `json:"contentType,omitempty"`
+}
+
+// Pipeline is a saved extract, transform, and load, stored in data/pipelines.json.
+type Pipeline struct {
+	Name      string `json:"name"`
+	Extract   string `json:"extract"`
+	Transform string `json:"transform"`
+	Load      string `json:"load"`
 }
 
 // Transform is a named text operation stored in data/transforms.json.
