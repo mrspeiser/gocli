@@ -17,13 +17,19 @@ func main() {
 		Order   string `json:"ORDER"`
 	}
 
-	file, _ := os.Open("conf.json")
+	file, err := os.Open("conf.json")
+	if err != nil {
+		fmt.Printf("error opening config file: %v\n", err)
+		os.Exit(1)
+	}
 	defer file.Close()
+
 	decoder := json.NewDecoder(file)
 	configuration := Configuration{}
-	err := decoder.Decode(&configuration)
+	err = decoder.Decode(&configuration)
 	if err != nil {
-		fmt.Println("error:", err)
+		fmt.Printf("error decoding config: %v\n", err)
+		os.Exit(1)
 	}
 
 	configval := reflect.ValueOf(configuration)
