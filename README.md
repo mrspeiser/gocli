@@ -19,11 +19,12 @@ Today the tool:
 - Walks menus for main, state, pipelines, extract, load, transform, and sequences
 - Saves a pipeline in `data/pipelines.json` as one extract, one transform, and one load, and can show, delete, and run it. Run reads the extract, transforms the body, and POSTs it to the load
 - Extract saves an HTTP GET configuration in `data/sources.json`, can show and delete it, reads the URL, and writes the body to `data/<name>.txt`
-- Loads and saves runtime key/value state in `data/state.json`. State show lists that state with saved extracts, pipelines, loads, and transforms
+- Loads and saves runtime key/value state in `data/state.json`. State show lists that state with saved extracts, pipelines, loads, transforms, and sequences
 - Load saves an HTTP POST configuration in `data/destinations.json`, including content type, and can show, delete, and POST the last body
 - Transform saves operations in `data/transforms.json` and can add, show, delete, and run one on `last.body`
+- Saves a sequence of pipeline names in `data/sequences.json` and can show, delete, and run them in order
 
-Sequences can be opened and closed. They do not perform work yet. Configuration notes for MongoDB, Postgres, MySQL, and the other sources are in [docs/protocols.md](docs/protocols.md). Only `http` connects today.
+Sequences run each saved pipeline from extract through load. Configuration notes for MongoDB, Postgres, MySQL, and the other sources are in [docs/protocols.md](docs/protocols.md). Only `http` connects today.
 
 <br />
 

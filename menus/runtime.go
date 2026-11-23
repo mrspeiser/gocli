@@ -40,6 +40,12 @@ type Pipeline struct {
 	Load      string `json:"load"`
 }
 
+// Sequence is an ordered list of pipeline names stored in data/sequences.json.
+type Sequence struct {
+	Name      string   `json:"name"`
+	Pipelines []string `json:"pipelines"`
+}
+
 // Transform is a named text operation stored in data/transforms.json.
 type Transform struct {
 	Name string   `json:"name"`

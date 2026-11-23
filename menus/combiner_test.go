@@ -16,12 +16,13 @@ func TestCollateMenuOptionsParsesFields(t *testing.T) {
 	}
 }
 
-func TestPlaceholderMenusHaveBack(t *testing.T) {
-	cli, _ := collate()
-	for _, key := range []string{"main.sequences"} {
-		opts := cli[key].menuoptions
-		if len(opts) != 1 || opts[0].accessor != "q" || opts[0].action != "exit" {
-			t.Fatalf("%s options = %+v, want a single back option", key, opts)
-		}
+func TestSequencesMenuCanRun(t *testing.T) {
+	cli, actions := collate()
+	opts := cli["main.sequences"].menuoptions
+	if len(opts) != 5 || opts[3].accessor != "3" || opts[3].action != "action" {
+		t.Fatalf("sequences options = %+v", opts)
+	}
+	if actions["main.sequences.runsequence"] == nil {
+		t.Fatal("run sequence is not wired")
 	}
 }
