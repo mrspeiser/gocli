@@ -35,14 +35,14 @@ func main() {
 	configval := reflect.ValueOf(configuration)
 	typeof := configval.Type()
 
+	menus.PrintAppHeader(configuration.Name, configuration.Version)
+	
+	menus.PrintSection("Configuration")
 	for i := 0; i < configval.NumField(); i++ {
 		k := typeof.Field(i).Name
 		v := configval.Field(i).Interface()
-		fmt.Printf("%s: %s\n", k, v)
+		menus.PrintInfo(fmt.Sprintf("%s: %v", k, v))
 	}
-
-	fmt.Println("\nGO CLI")
-	fmt.Println("---------------------")
 
 	runningstate := make(map[string]string)
 	menus.ShowMenu(&runningstate)

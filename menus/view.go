@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+
+	"github.com/pterm/pterm"
 )
 
 func ShowState(rt *Runtime) {
@@ -11,55 +13,66 @@ func ShowState(rt *Runtime) {
 	if !ok {
 		return
 	}
+	PrintSection("Application State")
 	fmt.Print(formatSaved(rt.State, sources, pipelines, destinations, transforms, sequences))
 }
 
 func ShowSources(rt *Runtime) {
 	sources, err := LoadSources(rt.dataDir())
 	if err != nil {
-		fmt.Println("error:", err)
+		PrintError(fmt.Sprintf("Failed to load sources: %v", err))
 		return
 	}
 	rt.Sources = sources
+	if len(sources) == 0 {
+		PrintWarning("No sources configured")
+		return
+	}
+	PrintSection("Sources")
 	fmt.Print(formatSources(sources))
 }
 
 func ShowPipelines(rt *Runtime) {
 	pipelines, err := LoadPipelineConfigs(rt.dataDir())
 	if err != nil {
-		fmt.Println("error:", err)
+		PrintError(fmt.Sprintf("Failed to load pipelines: %v", err))
 		return
 	}
+	if len(pipelines) == 0 {
+		PrintWarning("No pipelines configured")
+		return
+	}
+	PrintSection("Pipelines")
 	fmt.Print(formatPipelines(pipelines))
 }
 
 func loadSaved(rt *Runtime) ([]Source, []Pipeline, []Destination, []Transform, []Sequence, bool) {
 	sources, err := LoadSources(rt.dataDir())
 	if err != nil {
-		fmt.Println("error:", err)
+		PrintError(fmt.Sprintf("Failed to load sources: %v", err))
 		return nil, nil, nil, nil, nil, false
 	}
 	rt.Sources = sources
 	pipelines, err := LoadPipelineConfigs(rt.dataDir())
 	if err != nil {
-		fmt.Println("error:", err)
+		PrintError(fmt.Sprintf("Failed to load pipelines: %v", err))
 		return nil, nil, nil, nil, nil, false
 	}
 	destinations, err := LoadDestinations(rt.dataDir())
 	if err != nil {
-		fmt.Println("error:", err)
+		PrintError(fmt.Sprintf("Failed to load destinations: %v", err))
 		return nil, nil, nil, nil, nil, false
 	}
 	rt.Destinations = destinations
 	transforms, err := LoadTransforms(rt.dataDir())
 	if err != nil {
-		fmt.Println("error:", err)
+		PrintError(fmt.Sprintf("Failed to load transforms: %v", err))
 		return nil, nil, nil, nil, nil, false
 	}
 	rt.Transforms = transforms
 	sequences, err := LoadSequences(rt.dataDir())
 	if err != nil {
-		fmt.Println("error:", err)
+		PrintError(fmt.Sprintf("Failed to load sequences: %v", err))
 		return nil, nil, nil, nil, nil, false
 	}
 	return sources, pipelines, destinations, transforms, sequences, true
@@ -102,33 +115,68 @@ func formatSources(sources []Source) string {
 	if len(sources) == 0 {
 		return "no extracts\n"
 	}
-	var b strings.Builder
-	for i, src := range sources {
-		fmt.Fprintf(&b, "%d) %s %s %s %s\n", i+1, src.Name, src.protocolName(), src.httpMethod(), src.URL)
+	
+	tableData := pterm.TableData{
+		{pterm.FgYellow.Sprint("#"), pterm.FgCyan.Sprint("Name"), pterm.FgGreen.Sprint("Protocol"), pterm.FgMagenta.Sprint("Method"), pterm.FgBlue.Sprint("URL")},
 	}
-	return b.String()
+	
+	for i, src := range sources {
+		tableData = append(tableData, []string{
+			fmt.Sprintf("%d", i+1),
+			GetIcon("source") + src.Name,
+			src.protocolName(),
+			src.httpMethod(),
+			src.URL,
+		})
+	}
+	
+	result, _ := pterm.DefaultTable.WithHasHeader().WithData(tableData).Srender()
+	return result + "\n"
 }
 
 func formatDestinations(destinations []Destination) string {
 	if len(destinations) == 0 {
 		return "no loads\n"
 	}
-	var b strings.Builder
-	for i, dest := range destinations {
-		fmt.Fprintf(&b, "%d) %s %s %s %s %s\n", i+1, dest.Name, dest.protocolName(), dest.httpMethod(), dest.URL, dest.contentType())
+	
+	tableData := pterm.TableData{
+		{pterm.FgYellow.Sprint("#"), pterm.FgCyan.Sprint("Name"), pterm.FgGreen.Sprint("Protocol"), pterm.FgMagenta.Sprint("Method"), pterm.FgBlue.Sprint("URL"), pterm.FgWhite.Sprint("Content-Type")},
 	}
-	return b.String()
+	
+	for i, dest := range destinations {
+		tableData = append(tableData, []string{
+			fmt.Sprintf("%d", i+1),
+			GetIcon("destination") + dest.Name,
+			dest.protocolName(),
+			dest.httpMethod(),
+			dest.URL,
+			dest.contentType(),
+		})
+	}
+	
+	result, _ := pterm.DefaultTable.WithHasHeader().WithData(tableData).Srender()
+	return result + "\n"
 }
 
 func formatTransforms(transforms []Transform) string {
 	if len(transforms) == 0 {
 		return "no transforms\n"
 	}
-	var b strings.Builder
-	for i, transform := range transforms {
-		fmt.Fprintf(&b, "%d) %s %s\n", i+1, transform.Name, formatTransformOp(transform))
+	
+	tableData := pterm.TableData{
+		{pterm.FgYellow.Sprint("#"), pterm.FgCyan.Sprint("Name"), pterm.FgMagenta.Sprint("Operation")},
 	}
-	return b.String()
+	
+	for i, transform := range transforms {
+		tableData = append(tableData, []string{
+			fmt.Sprintf("%d", i+1),
+			GetIcon("transform") + transform.Name,
+			formatTransformOp(transform),
+		})
+	}
+	
+	result, _ := pterm.DefaultTable.WithHasHeader().WithData(tableData).Srender()
+	return result + "\n"
 }
 
 func formatTransformOp(transform Transform) string {
@@ -153,9 +201,21 @@ func formatPipelines(pipelines []Pipeline) string {
 	if len(pipelines) == 0 {
 		return "no pipelines\n"
 	}
-	var b strings.Builder
-	for i, pipeline := range pipelines {
-		fmt.Fprintf(&b, "%d) %s %s %s %s\n", i+1, pipeline.Name, pipeline.Extract, pipeline.Transform, pipeline.Load)
+	
+	tableData := pterm.TableData{
+		{pterm.FgYellow.Sprint("#"), pterm.FgCyan.Sprint("Name"), pterm.FgGreen.Sprint("Extract"), pterm.FgMagenta.Sprint("Transform"), pterm.FgBlue.Sprint("Load")},
 	}
-	return b.String()
+	
+	for i, pipeline := range pipelines {
+		tableData = append(tableData, []string{
+			fmt.Sprintf("%d", i+1),
+			GetIcon("pipeline") + pipeline.Name,
+			pipeline.Extract,
+			pipeline.Transform,
+			pipeline.Load,
+		})
+	}
+	
+	result, _ := pterm.DefaultTable.WithHasHeader().WithData(tableData).Srender()
+	return result + "\n"
 }

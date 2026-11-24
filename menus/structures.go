@@ -19,10 +19,12 @@ Menu struct holds:
 
 	The menuname: matches the uniquemenukey for the option selected
 	the menuoptions: a list of MenuOptions
+	the name: display name for the menu
 */
 type Menu struct {
 	menuname    string
 	menuoptions []MenuOption
+	name        string
 }
 
 /*

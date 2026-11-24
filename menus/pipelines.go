@@ -101,16 +101,16 @@ func SavePipelineConfigs(dir string, pipelines []Pipeline) error {
 
 func NewPipeline(rt *Runtime) {
 	if err := reloadSteps(rt); err != nil {
-		fmt.Println("error:", err)
+		PrintError(fmt.Sprintf("Failed to load steps: %v", err))
 		return
 	}
-	name, err := rt.prompt("name-> ")
+	name, err := rt.prompt("name: ")
 	if err != nil {
-		fmt.Println("error:", err)
+		PrintError(fmt.Sprintf("Error: %v", err))
 		return
 	}
 	if name == "" {
-		fmt.Println("name is required")
+		PrintWarning("Name is required")
 		return
 	}
 	extract, ok := pickStep(rt, "extract", formatSources(rt.Sources), len(rt.Sources), sourceNames(rt.Sources))
@@ -127,63 +127,75 @@ func NewPipeline(rt *Runtime) {
 	}
 	pipelines, err := LoadPipelineConfigs(rt.dataDir())
 	if err != nil {
-		fmt.Println("error:", err)
+		PrintError(fmt.Sprintf("Failed to load pipelines: %v", err))
 		return
 	}
 	pipelines = append(pipelines, Pipeline{Name: name, Extract: extract, Transform: transform, Load: load})
 	if err := SavePipelineConfigs(rt.dataDir(), pipelines); err != nil {
-		fmt.Println("error:", err)
+		PrintError(fmt.Sprintf("Failed to save pipeline: %v", err))
+	} else {
+		PrintSuccess(GetIcon("success") + "Pipeline created successfully!")
 	}
 }
 
 func RunPipeline(rt *Runtime) {
 	pipelines, err := LoadPipelineConfigs(rt.dataDir())
 	if err != nil {
-		fmt.Println("error:", err)
+		PrintError(fmt.Sprintf("Failed to load pipelines: %v", err))
 		return
 	}
 	if len(pipelines) == 0 {
-		fmt.Println("no pipelines")
+		PrintWarning("No pipelines available")
 		return
 	}
 	fmt.Print(formatPipelines(pipelines))
-	n, ok := pickStepIndex(rt, "pipeline-> ", len(pipelines))
+	n, ok := pickStepIndex(rt, "pipeline: ", len(pipelines))
 	if !ok {
 		return
 	}
 	if err := reloadSteps(rt); err != nil {
-		fmt.Println("error:", err)
+		PrintError(fmt.Sprintf("Failed to reload steps: %v", err))
 		return
 	}
+	
+	PrintSection(fmt.Sprintf("Running Pipeline: %s", pipelines[n-1].Name))
+	
 	status, body, err := ExecutePipeline(rt, pipelines[n-1])
 	if body != "" || err == nil {
-		fmt.Printf("\nloaded %s\n%s\n%s\n", pipelines[n-1].Load, status, body)
+		PrintSection("Results")
+		PrintInfo(fmt.Sprintf("Loaded to: %s", pipelines[n-1].Load))
+		PrintInfo(fmt.Sprintf("Status: %s", status))
+		fmt.Println(body)
+		PrintSuccess(GetIcon("success") + "Pipeline completed successfully!")
 	}
 	if err != nil {
-		fmt.Println("error:", err)
+		PrintError(fmt.Sprintf("Error: %v", err))
 	}
 }
 
 func DeletePipeline(rt *Runtime) {
 	pipelines, err := LoadPipelineConfigs(rt.dataDir())
 	if err != nil {
-		fmt.Println("error:", err)
+		PrintError(fmt.Sprintf("Failed to load pipelines: %v", err))
 		return
 	}
 	if len(pipelines) == 0 {
-		fmt.Println("no pipelines")
+		PrintWarning("No pipelines available")
 		return
 	}
 	fmt.Print(formatPipelines(pipelines))
-	n, ok := pickStepIndex(rt, "pipeline-> ", len(pipelines))
+	n, ok := pickStepIndex(rt, "pipeline: ", len(pipelines))
 	if !ok {
 		return
 	}
+	deletedName := pipelines[n-1].Name
 	updated := make([]Pipeline, 0, len(pipelines)-1)
 	updated = append(updated, pipelines[:n-1]...)
 	updated = append(updated, pipelines[n:]...)
 	if err := SavePipelineConfigs(rt.dataDir(), updated); err != nil {
-		fmt.Println("error:", err)
+		PrintError(fmt.Sprintf("Failed to save: %v", err))
+	} else {
+		PrintSuccess(fmt.Sprintf("%s Deleted pipeline: %s", GetIcon("delete"), deletedName))
 	}
 }
 
@@ -252,26 +264,28 @@ func reloadSteps(rt *Runtime) error {
 
 func pickStep(rt *Runtime, kind, printed string, count int, names []string) (string, bool) {
 	if count == 0 {
-		fmt.Printf("no %ss\n", kind)
+		PrintWarning(fmt.Sprintf("No %ss available", kind))
 		return "", false
 	}
+	PrintSection(fmt.Sprintf("Select %s", kind))
 	fmt.Print(printed)
-	n, ok := pickStepIndex(rt, kind+"-> ", count)
+	n, ok := pickStepIndex(rt, kind+": ", count)
 	if !ok {
 		return "", false
 	}
+	PrintSuccess(fmt.Sprintf("Selected: %s", names[n-1]))
 	return names[n-1], true
 }
 
 func pickStepIndex(rt *Runtime, label string, count int) (int, bool) {
 	input, err := rt.prompt(label)
 	if err != nil {
-		fmt.Println("error:", err)
+		PrintError(fmt.Sprintf("Error: %v", err))
 		return 0, false
 	}
 	n, err := strconv.Atoi(input)
 	if err != nil || n < 1 || n > count {
-		fmt.Println("invalid choice")
+		PrintWarning("Invalid choice")
 		return 0, false
 	}
 	return n, true
