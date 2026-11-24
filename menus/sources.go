@@ -3,13 +3,11 @@ package menus
 import (
 	"fmt"
 	"io"
-	"net/http"
 	"net/url"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
-	"time"
 )
 
 const maxBodyBytes = 4096
@@ -26,13 +24,13 @@ func validSourceURL(raw string) bool {
 }
 
 func NewSource(rt *Runtime) {
-	name, err := rt.prompt("name-> ")
+	name, err := rt.prompt("name: ")
 	if err != nil {
-		fmt.Println("error:", err)
+		PrintError(fmt.Sprintf("Error: %v", err))
 		return
 	}
 	if name == "" {
-		fmt.Println("name is required")
+		PrintWarning("Name is required")
 		return
 	}
 	protocol, ok := askProtocol(rt)
@@ -50,7 +48,9 @@ func NewSource(rt *Runtime) {
 		Method:   "GET",
 	})
 	if err := SaveSources(rt.dataDir(), rt.Sources); err != nil {
-		fmt.Println("error:", err)
+		PrintError(fmt.Sprintf("Failed to save source: %v", err))
+	} else {
+		PrintSuccess(GetIcon("success") + "Source created successfully!")
 	}
 }
 
@@ -61,51 +61,56 @@ func ReadSource(rt *Runtime) {
 	}
 	body, err := FetchSource(rt, src)
 	if body != "" || err == nil {
-		fmt.Printf("\n%s\n%s\n", rt.State["last.status"], body)
+		PrintSection("Response")
+		PrintInfo(fmt.Sprintf("Status: %s", rt.State["last.status"]))
+		fmt.Println(body)
 		if path := rt.State["last.file"]; path != "" {
-			fmt.Println("wrote", path)
+			PrintSuccess(fmt.Sprintf("%s Saved to: %s", GetIcon("save"), path))
 		}
 	}
 	if err != nil {
-		fmt.Println("error:", err)
+		PrintError(fmt.Sprintf("Error: %v", err))
 	}
 }
 
 func DeleteSource(rt *Runtime) {
 	if len(rt.Sources) == 0 {
-		fmt.Println("no extracts")
+		PrintWarning("No extracts available")
 		return
 	}
 	fmt.Print(formatSources(rt.Sources))
-	input, err := rt.prompt("extract-> ")
+	input, err := rt.prompt("extract: ")
 	if err != nil {
-		fmt.Println("error:", err)
+		PrintError(fmt.Sprintf("Error: %v", err))
 		return
 	}
 	n, err := strconv.Atoi(input)
 	if err != nil || n < 1 || n > len(rt.Sources) {
-		fmt.Println("invalid extract")
+		PrintWarning("Invalid extract number")
 		return
 	}
+	deletedName := rt.Sources[n-1].Name
 	rt.Sources = append(rt.Sources[:n-1], rt.Sources[n:]...)
 	if err := SaveSources(rt.dataDir(), rt.Sources); err != nil {
-		fmt.Println("error:", err)
+		PrintError(fmt.Sprintf("Failed to save: %v", err))
+	} else {
+		PrintSuccess(fmt.Sprintf("%s Deleted source: %s", GetIcon("delete"), deletedName))
 	}
 }
 
 func SetState(rt *Runtime) {
-	key, err := rt.prompt("key-> ")
+	key, err := rt.prompt("key: ")
 	if err != nil {
-		fmt.Println("error:", err)
+		PrintError(fmt.Sprintf("Error: %v", err))
 		return
 	}
 	if key == "" {
-		fmt.Println("key is required")
+		PrintWarning("Key is required")
 		return
 	}
-	val, err := rt.prompt("value-> ")
+	val, err := rt.prompt("value: ")
 	if err != nil {
-		fmt.Println("error:", err)
+		PrintError(fmt.Sprintf("Error: %v", err))
 		return
 	}
 	if rt.State == nil {
@@ -113,7 +118,9 @@ func SetState(rt *Runtime) {
 	}
 	rt.State[key] = val
 	if err := SaveState(rt.dataDir(), rt.State); err != nil {
-		fmt.Println("error:", err)
+		PrintError(fmt.Sprintf("Failed to save state: %v", err))
+	} else {
+		PrintSuccess(fmt.Sprintf("%s State updated: %s = %s", GetIcon("save"), key, val))
 	}
 }
 
@@ -123,8 +130,10 @@ func FetchSource(rt *Runtime, src Source) (string, error) {
 	if err := src.validateExtract(); err != nil {
 		return "", err
 	}
-	client := &http.Client{Timeout: 10 * time.Second}
-	resp, err := client.Get(src.URL)
+	
+	PrintInfo(fmt.Sprintf("%s Fetching data from %s", GetIcon("source"), src.Name))
+	
+	resp, err := FetchWithProgress(src.URL, fmt.Sprintf("Downloading from %s", src.Name))
 	if err != nil {
 		return "", err
 	}
@@ -132,6 +141,7 @@ func FetchSource(rt *Runtime, src Source) (string, error) {
 
 	limited, readErr := io.ReadAll(io.LimitReader(resp.Body, maxBodyBytes))
 	body := string(limited)
+	
 	if rt.State == nil {
 		rt.State = map[string]string{}
 	}
@@ -139,17 +149,22 @@ func FetchSource(rt *Runtime, src Source) (string, error) {
 	rt.State["last.url"] = src.URL
 	rt.State["last.status"] = resp.Status
 	rt.State["last.body"] = body
+	
 	if readErr == nil {
 		path, writeErr := SaveSourceBody(rt.dataDir(), src.Name, body)
 		if writeErr != nil {
 			readErr = writeErr
+			PrintError(fmt.Sprintf("Failed to save body: %v", writeErr))
 		} else {
 			rt.State["last.file"] = path
+			PrintSuccess(fmt.Sprintf("Data saved to %s", path))
 		}
 	}
+	
 	if saveErr := SaveState(rt.dataDir(), rt.State); readErr == nil {
 		readErr = saveErr
 	}
+	
 	return body, readErr
 }
 
@@ -183,18 +198,18 @@ func sourceFileName(name string) string {
 
 func pickSource(rt *Runtime) (Source, bool) {
 	if len(rt.Sources) == 0 {
-		fmt.Println("no extracts")
+		PrintWarning("No extracts available")
 		return Source{}, false
 	}
 	fmt.Print(formatSources(rt.Sources))
-	input, err := rt.prompt("extract-> ")
+	input, err := rt.prompt("extract: ")
 	if err != nil {
-		fmt.Println("error:", err)
+		PrintError(fmt.Sprintf("Error: %v", err))
 		return Source{}, false
 	}
 	n, err := strconv.Atoi(input)
 	if err != nil || n < 1 || n > len(rt.Sources) {
-		fmt.Println("invalid extract")
+		PrintWarning("Invalid extract number")
 		return Source{}, false
 	}
 	return rt.Sources[n-1], true

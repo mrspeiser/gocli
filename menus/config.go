@@ -6,28 +6,28 @@ import (
 )
 
 func askProtocol(rt *Runtime) (string, bool) {
-	fmt.Println("protocols: http")
-	raw, err := rt.prompt("protocol-> ")
+	PrintInfo("Available protocols: http")
+	raw, err := rt.prompt("protocol: ")
 	if err != nil {
-		fmt.Println("error:", err)
+		PrintError(fmt.Sprintf("Error: %v", err))
 		return "", false
 	}
 	protocol, err := normalizeProtocol(raw)
 	if err != nil {
-		fmt.Println("error:", err)
+		PrintError(fmt.Sprintf("Error: %v", err))
 		return "", false
 	}
 	return protocol, true
 }
 
 func askHTTPURL(rt *Runtime) (string, bool) {
-	rawURL, err := rt.prompt("url-> ")
+	rawURL, err := rt.prompt("url: ")
 	if err != nil {
-		fmt.Println("error:", err)
+		PrintError(fmt.Sprintf("Error: %v", err))
 		return "", false
 	}
 	if !validSourceURL(rawURL) {
-		fmt.Println("url must be http or https")
+		PrintWarning("URL must be http or https")
 		return "", false
 	}
 	return rawURL, true

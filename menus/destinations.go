@@ -3,20 +3,18 @@ package menus
 import (
 	"fmt"
 	"io"
-	"net/http"
 	"strconv"
 	"strings"
-	"time"
 )
 
 func NewDestination(rt *Runtime) {
-	name, err := rt.prompt("name-> ")
+	name, err := rt.prompt("name: ")
 	if err != nil {
-		fmt.Println("error:", err)
+		PrintError(fmt.Sprintf("Error: %v", err))
 		return
 	}
 	if name == "" {
-		fmt.Println("name is required")
+		PrintWarning("Name is required")
 		return
 	}
 	protocol, ok := askProtocol(rt)
@@ -27,9 +25,9 @@ func NewDestination(rt *Runtime) {
 	if !ok {
 		return
 	}
-	contentType, err := rt.prompt("content-type-> ")
+	contentType, err := rt.prompt("content-type: ")
 	if err != nil {
-		fmt.Println("error:", err)
+		PrintError(fmt.Sprintf("Error: %v", err))
 		return
 	}
 	contentType = strings.TrimSpace(contentType)
@@ -44,39 +42,48 @@ func NewDestination(rt *Runtime) {
 		ContentType: contentType,
 	})
 	if err := SaveDestinations(rt.dataDir(), rt.Destinations); err != nil {
-		fmt.Println("error:", err)
+		PrintError(fmt.Sprintf("Failed to save destination: %v", err))
+	} else {
+		PrintSuccess(GetIcon("success") + "Destination created successfully!")
 	}
 }
 
 func ShowDestinations(rt *Runtime) {
 	destinations, err := LoadDestinations(rt.dataDir())
 	if err != nil {
-		fmt.Println("error:", err)
+		PrintError(fmt.Sprintf("Failed to load destinations: %v", err))
 		return
 	}
 	rt.Destinations = destinations
+	if len(destinations) == 0 {
+		PrintWarning("No destinations configured")
+		return
+	}
 	fmt.Print(formatDestinations(destinations))
 }
 
 func DeleteDestination(rt *Runtime) {
 	if len(rt.Destinations) == 0 {
-		fmt.Println("no loads")
+		PrintWarning("No loads available")
 		return
 	}
 	fmt.Print(formatDestinations(rt.Destinations))
-	input, err := rt.prompt("load-> ")
+	input, err := rt.prompt("load: ")
 	if err != nil {
-		fmt.Println("error:", err)
+		PrintError(fmt.Sprintf("Error: %v", err))
 		return
 	}
 	n, err := strconv.Atoi(input)
 	if err != nil || n < 1 || n > len(rt.Destinations) {
-		fmt.Println("invalid load")
+		PrintWarning("Invalid load number")
 		return
 	}
+	deletedName := rt.Destinations[n-1].Name
 	rt.Destinations = append(rt.Destinations[:n-1], rt.Destinations[n:]...)
 	if err := SaveDestinations(rt.dataDir(), rt.Destinations); err != nil {
-		fmt.Println("error:", err)
+		PrintError(fmt.Sprintf("Failed to save: %v", err))
+	} else {
+		PrintSuccess(fmt.Sprintf("%s Deleted destination: %s", GetIcon("delete"), deletedName))
 	}
 }
 
@@ -86,7 +93,7 @@ func SendDestination(rt *Runtime) {
 		body = rt.State["last.body"]
 	}
 	if body == "" {
-		fmt.Println("no body to send")
+		PrintWarning("No body to send")
 		return
 	}
 	dest, ok := pickDestination(rt)
@@ -94,9 +101,12 @@ func SendDestination(rt *Runtime) {
 		return
 	}
 	if err := dest.validateLoad(); err != nil {
-		fmt.Println("error:", err)
+		PrintError(fmt.Sprintf("Validation error: %v", err))
 		return
 	}
+	
+	PrintInfo(fmt.Sprintf("%s Sending data to %s", GetIcon("destination"), dest.Name))
+	
 	status, respBody, err := PostBody(dest.URL, body, dest.contentType())
 	if rt.State == nil {
 		rt.State = map[string]string{}
@@ -110,44 +120,45 @@ func SendDestination(rt *Runtime) {
 		}
 	}
 	if respBody != "" || err == nil {
-		fmt.Printf("\n%s\n%s\n", status, respBody)
+		PrintSection("Response")
+		PrintInfo(fmt.Sprintf("Status: %s", status))
+		fmt.Println(respBody)
+		PrintSuccess(GetIcon("success") + "Data sent successfully!")
 	}
 	if err != nil {
-		fmt.Println("error:", err)
+		PrintError(fmt.Sprintf("Error: %v", err))
 	}
 }
 
 // PostBody POSTs body to rawURL and keeps at most 4KB of the response.
 func PostBody(rawURL, body, contentType string) (string, string, error) {
-	client := &http.Client{Timeout: 10 * time.Second}
-	req, err := http.NewRequest(http.MethodPost, rawURL, strings.NewReader(body))
-	if err != nil {
-		return "", "", err
-	}
-	req.Header.Set("Content-Type", headerContentType(contentType))
-	resp, err := client.Do(req)
+	bodyReader := strings.NewReader(body)
+	contentLength := int64(len(body))
+	
+	resp, err := PostWithProgress(rawURL, bodyReader, contentLength, headerContentType(contentType), "Uploading data")
 	if err != nil {
 		return "", "", err
 	}
 	defer resp.Body.Close()
+	
 	limited, readErr := io.ReadAll(io.LimitReader(resp.Body, maxBodyBytes))
 	return resp.Status, string(limited), readErr
 }
 
 func pickDestination(rt *Runtime) (Destination, bool) {
 	if len(rt.Destinations) == 0 {
-		fmt.Println("no loads")
+		PrintWarning("No loads available")
 		return Destination{}, false
 	}
 	fmt.Print(formatDestinations(rt.Destinations))
-	input, err := rt.prompt("load-> ")
+	input, err := rt.prompt("load: ")
 	if err != nil {
-		fmt.Println("error:", err)
+		PrintError(fmt.Sprintf("Error: %v", err))
 		return Destination{}, false
 	}
 	n, err := strconv.Atoi(input)
 	if err != nil || n < 1 || n > len(rt.Destinations) {
-		fmt.Println("invalid load")
+		PrintWarning("Invalid load number")
 		return Destination{}, false
 	}
 	return rt.Destinations[n-1], true

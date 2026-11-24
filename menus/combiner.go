@@ -6,7 +6,8 @@ import (
 
 func CollateMenuOptions(uniquekey string, menuoptions []string, cli *map[string]Menu) {
 	combined := GetMenuMap(uniquekey, menuoptions)
-	menu := Menu{menuname: uniquekey}
+	displayName := getMenuDisplayName(uniquekey)
+	menu := Menu{menuname: uniquekey, name: displayName}
 	menuopts := make([]MenuOption, len(combined[uniquekey]))
 
 	for i := 0; i < len(menuoptions); i++ {
@@ -20,6 +21,23 @@ func CollateMenuOptions(uniquekey string, menuoptions []string, cli *map[string]
 	}
 	menu.menuoptions = menuopts
 	(*cli)[uniquekey] = menu
+}
+
+func getMenuDisplayName(key string) string {
+	names := map[string]string{
+		"main":               "Main Menu",
+		"main.state":         "State Management",
+		"main.pipeline":      "Pipeline Operations",
+		"main.sources":       "Source Configuration",
+		"main.destinations":  "Destination Configuration",
+		"main.transforms":    "Transform Operations",
+		"main.sequences":     "Sequence Management",
+	}
+	
+	if name, ok := names[key]; ok {
+		return name
+	}
+	return key
 }
 
 func collate() (map[string]Menu, map[string]func(*Runtime)) {

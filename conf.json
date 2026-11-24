@@ -1,6 +1,5 @@
 {
-  "NAME":"gocli",
-  "VERSION":"0.0.1",
-  "ORDER":"normal"
+  "NAME": "GOCLI ETL Tool",
+  "VERSION": "1.0.0",
+  "ORDER": "sequential"
 }
-

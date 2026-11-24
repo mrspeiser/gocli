@@ -90,7 +90,7 @@ func (rt *Runtime) readLine() (string, error) {
 }
 
 func (rt *Runtime) prompt(label string) (string, error) {
-	fmt.Print(label)
+	fmt.Print(StyledPrompt(label))
 	return rt.readLine()
 }
 

@@ -10,49 +10,43 @@ import (
 func AccessMenu(cli map[string]Menu, actions map[string]func(*Runtime), rt *Runtime, currentmenu string) {
 	for {
 		PrintMenuOptions(cli[currentmenu])
-		fmt.Print("-> ")
+		fmt.Print(StyledPrompt("Enter option: "))
 		input, err := rt.readLine()
 		if err != nil {
-			fmt.Println("error:", err)
+			PrintError(fmt.Sprintf("Error reading input: %v", err))
 			break
 		}
 
-		// exit loop if option is 'q'
 		if strings.Compare("q", input) == 0 {
+			PrintInfo(GetIcon("quit") + "Exiting menu...")
 			break
 		}
 
-		// Print input to command line
-		fmt.Println("\ninput:", input)
-
-		// check the input to see if it has a matching option accessor
 		option, validoption := CheckOption(cli, input, currentmenu)
 
-		// Print input to command line
-		fmt.Println("\noption:", option)
+		if !validoption {
+			PrintWarning("Invalid option, please try again")
+			continue
+		}
 
 		if option != nil && option.action == "action" {
 			fn := actions[option.uniquemenukey]
 			if fn == nil {
-				fmt.Println("no action for", option.uniquemenukey)
+				PrintError(fmt.Sprintf("No action found for %s", option.uniquemenukey))
 			} else {
+				PrintSection(option.value)
 				fn(rt)
 			}
 		}
 
-		// if option is valid
 		if validoption && option.action == "menu" {
-			// get the next menu's key corresponding to the option
 			nextaccess := option.uniquemenukey
-			// retrieve menu from map using the options uniquemenukey
 			menu := cli[nextaccess]
-			// if menu's options are available
 			if menu.menuoptions != nil {
-				// recursively call AccessMenu
 				AccessMenu(cli, actions, rt, nextaccess)
 				PrintMenuOptions(cli[currentmenu])
 			} else {
-				fmt.Println("menu", menu, "has no options")
+				PrintError(fmt.Sprintf("Menu %s has no options", menu.name))
 			}
 		}
 	}
@@ -82,30 +76,41 @@ func ShowMenu(o1 *map[string]string) {
 		State:   *o1,
 		DataDir: defaultDataDir,
 	}
+	
+	PrintSection("Initializing Application")
+	
 	if state, err := LoadState(rt.DataDir); err == nil {
 		rt.State = state
 		*o1 = state
+		PrintSuccess("State loaded successfully")
 	} else if !errors.Is(err, os.ErrNotExist) {
-		fmt.Println("error:", err)
+		PrintError(fmt.Sprintf("Failed to load state: %v", err))
 	}
+	
 	sources, err := LoadSources(rt.DataDir)
 	if err != nil {
-		fmt.Println("error:", err)
+		PrintError(fmt.Sprintf("Failed to load sources: %v", err))
 	} else {
 		rt.Sources = sources
+		PrintSuccess(fmt.Sprintf("Loaded %d source(s)", len(sources)))
 	}
+	
 	destinations, err := LoadDestinations(rt.DataDir)
 	if err != nil {
-		fmt.Println("error:", err)
+		PrintError(fmt.Sprintf("Failed to load destinations: %v", err))
 	} else {
 		rt.Destinations = destinations
+		PrintSuccess(fmt.Sprintf("Loaded %d destination(s)", len(destinations)))
 	}
+	
 	transforms, err := LoadTransforms(rt.DataDir)
 	if err != nil {
-		fmt.Println("error:", err)
+		PrintError(fmt.Sprintf("Failed to load transforms: %v", err))
 	} else {
 		rt.Transforms = transforms
+		PrintSuccess(fmt.Sprintf("Loaded %d transform(s)", len(transforms)))
 	}
+	
 	cli, actions := collate()
 	AccessMenu(cli, actions, rt, "main")
 }

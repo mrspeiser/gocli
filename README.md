@@ -3,12 +3,31 @@
 ##### CURRENTLY UNDER DEVELOPMENT
 
 - [Current status](#current-status)
+- [New Features](#new-features)
 - [Idea](#idea)
 - [Contributing](#contributing)
 
 Protocol configuration for HTTP and the other data sources is in [docs/protocols.md](docs/protocols.md).
 
+For details on the new styling and UI enhancements, see [STYLING.md](STYLING.md).
+
   
+<br />
+
+#### New Features
+
+**Enhanced CLI Styling and User Experience:**
+
+- 🎨 **Beautiful Color Scheme** - Color-coded output for success, errors, warnings, and info messages
+- 📊 **Progress Bars** - Real-time progress indicators for HTTP downloads and uploads
+- 🎯 **Visual Icons** - Contextual icons throughout the interface (pipelines 🔄, sources 📥, destinations 📤, etc.)
+- 📋 **Formatted Tables** - Clean, organized table displays for all data listings
+- ✨ **Styled Headers** - Professional ASCII art banner and styled section headers
+- 🎪 **Improved Prompts** - Clear, color-coded prompts with visual indicators
+- 💫 **Status Messages** - Instant visual feedback with styled success/error/warning messages
+
+The CLI now provides a modern, professional terminal experience with better readability and user feedback. See [STYLING.md](STYLING.md) for complete details.
+
 <br />
 
 #### Current status
